@@ -9,9 +9,9 @@ export interface HttpClientProcedureBuilder<TClient = unknown> {
 
 export interface HttpClientProcedureBuilderWithHandler<TClient = unknown, TCtx = unknown> {
   (): ProcedureBuilder<TCtx, TClient>;
-  catch<TNewCtx>(
-    creationErrorHandler: (err: Error) => TNewCtx
-  ): HttpClientProcedureBuilderWithHandler<TClient, TNewCtx>;
+  catch(
+    creationErrorHandler: (err: Error) => void
+  ): HttpClientProcedureBuilderWithHandler<TClient, TCtx>;
   _getCtx(): TCtx;
   _getClient(): TClient;
 }

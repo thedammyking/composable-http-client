@@ -37,28 +37,14 @@ export function extendProcedure<TBaseProcedure extends BaseProcedure>(
         );
 
       const withHandlerBuilder = Object.assign(procedureFactory, {
-        catch<TErrorCtx>(
-          creationErrorHandler: (err: Error) => TErrorCtx
-        ): ExtendedProcedureBuilderWithHandler<
-          ReturnType<TBaseProcedure['_getClient']>,
-          TErrorCtx
-        > {
+        catch(
+          creationErrorHandler: (err: Error) => void
+        ): ExtendedProcedureBuilderWithHandler<ReturnType<TBaseProcedure['_getClient']>, TNewCtx> {
           if (creationError !== null && creationError !== undefined) {
             try {
-              const errorCtx = creationErrorHandler(creationError);
-              const newProcedureFactory = () =>
-                createProcedure<TErrorCtx, ReturnType<TBaseProcedure['_getClient']>>(
-                  errorCtx,
-                  baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>
-                );
-              return Object.assign(newProcedureFactory, {
-                catch() {
-                  throw new Error('catch() can only be called once.');
-                },
-                _getCtx: () => errorCtx,
-                _getClient: () =>
-                  baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>,
-              });
+              creationErrorHandler(creationError);
+              // Since the handler should throw, we shouldn't reach this point
+              throw new Error('Error handler should have thrown an error');
             } catch (catchError) {
               throw catchError;
             }
@@ -77,10 +63,7 @@ export function extendProcedure<TBaseProcedure extends BaseProcedure>(
             _getCtx: () => ctx,
             _getClient: () =>
               baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>,
-          }) as unknown as ExtendedProcedureBuilderWithHandler<
-            ReturnType<TBaseProcedure['_getClient']>,
-            TErrorCtx
-          >;
+          });
         },
         _getCtx: () => ctx,
         _getClient: () => baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>,

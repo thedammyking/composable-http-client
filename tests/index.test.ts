@@ -172,9 +172,13 @@ describe('Composable HTTP Client', () => {
 
     it('should demonstrate typed context flow through extendProcedure', async () => {
       // Step 1: Create base procedure with context
-      const baseWithContext = createHttpClientProcedure(mockClient).handler(() => {
-        return { apiKey: 'secret123', version: '1.0' };
-      });
+      const baseWithContext = createHttpClientProcedure(mockClient)
+        .handler(() => {
+          return { apiKey: 'secret123', version: '1.0' };
+        })
+        .catch(err => {
+          throw err;
+        });
 
       // Step 2: Extend with additional context
       const extendedProcedure = extendProcedure(baseWithContext).handler(({ ctx }) => {

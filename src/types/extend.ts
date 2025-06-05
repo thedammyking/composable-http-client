@@ -8,9 +8,9 @@ export interface ExtendedProcedureBuilder<TClient = unknown, TBaseCtx = unknown>
 
 export interface ExtendedProcedureBuilderWithHandler<TClient = unknown, TCtx = unknown> {
   (): ProcedureBuilder<TCtx, TClient>;
-  catch<TNewCtx>(
-    creationErrorHandler: (err: Error) => TNewCtx
-  ): ExtendedProcedureBuilderWithHandler<TClient, TNewCtx>;
+  catch(
+    creationErrorHandler: (err: Error) => void
+  ): ExtendedProcedureBuilderWithHandler<TClient, TCtx>;
   _getCtx(): TCtx;
   _getClient(): TClient;
 }

@@ -25,20 +25,14 @@ export function createHttpClientProcedure<TClient extends ClassicHttpClient>(
 
       const withHandlerBuilder: HttpClientProcedureBuilderWithHandler<TClient, TCtx> =
         Object.assign(procedureFactory, {
-          catch<TNewCtx>(
-            creationErrorHandler: (err: Error) => TNewCtx
-          ): HttpClientProcedureBuilderWithHandler<TClient, TNewCtx> {
+          catch(
+            creationErrorHandler: (err: Error) => void
+          ): HttpClientProcedureBuilderWithHandler<TClient, TCtx> {
             if (creationError !== null && creationError !== undefined) {
               try {
-                const newCtx = creationErrorHandler(creationError);
-                const newProcedureFactory = () => createProcedure<TNewCtx, TClient>(newCtx, client);
-                return Object.assign(newProcedureFactory, {
-                  catch() {
-                    throw new Error('catch() can only be called once.');
-                  },
-                  _getCtx: () => newCtx,
-                  _getClient: () => client,
-                });
+                creationErrorHandler(creationError);
+                // Since the handler should throw, we shouldn't reach this point
+                throw new Error('Error handler should have thrown an error');
               } catch (catchError) {
                 throw catchError;
               }
@@ -52,7 +46,7 @@ export function createHttpClientProcedure<TClient extends ClassicHttpClient>(
               },
               _getCtx: () => ctx,
               _getClient: () => client,
-            }) as unknown as HttpClientProcedureBuilderWithHandler<TClient, TNewCtx>;
+            });
           },
           _getCtx: () => ctx,
           _getClient: () => client,
