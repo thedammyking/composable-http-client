@@ -37,6 +37,8 @@ jobs:
 
       - name: Build package
         run: pnpm build
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Check build output
         run: |
