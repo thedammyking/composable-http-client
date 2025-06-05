@@ -1,4 +1,5 @@
-import type { ClassicHttpClient, HeadersFn, RequestConfig } from './types';
+import type { HeadersFn, RequestConfig } from '../types/base';
+import type { ClassicHttpClient } from '../types/client';
 
 export function buildUrl(baseURL: string, url: string = ''): string {
   return [baseURL.replace(/\/$/, ''), url.replace(/^\//, '')].filter(Boolean).join('/');
@@ -10,8 +11,6 @@ export function resolveHeaders<Tokens extends Record<string, string>>(
 ): Record<string, string> {
   return typeof headers === 'function' ? headers(tokens) : (headers ?? {});
 }
-
-// --- DRY Classic HTTP Client Factory ---
 
 export function buildClassicHttpClient<Response = any>(
   baseURL: string,
