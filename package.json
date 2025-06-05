@@ -1,6 +1,6 @@
 {
   "name": "composable-http-client",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A composable HTTP client library with procedure builders, schema validation, and retry logic",
   "type": "module",
   "main": "./dist/index.cjs",
