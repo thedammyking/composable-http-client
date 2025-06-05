@@ -8,6 +8,8 @@ We love your input! We want to make contributing to Composable HTTP Client as ea
 - Proposing new features
 - Becoming a maintainer
 
+**Our Philosophy**: We believe in **simple, focused contributions**. Our issue and PR templates are intentionally minimal - we'd rather have lots of quick, clear contributions than perfect ones that take forever to create.
+
 ## 🚀 Quick Start for Contributors
 
 1. **Fork the repository** on GitHub
@@ -275,66 +277,26 @@ We use GitHub issues to track bugs. Report a bug by [opening a new issue](https:
 
 ### Bug Report Guidelines
 
-**Great Bug Reports** tend to have:
+Our bug report template is simple and focused. Just provide:
 
-- A quick summary and/or background
-- Steps to reproduce
-  - Be specific!
-  - Give sample code if you can
-- What you expected would happen
-- What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+- **What's the bug?** - Clear description of what's wrong
+- **How to reproduce it** - Step-by-step instructions
+- **What should happen instead?** - Expected behavior
+- **Code example** - Minimal code that shows the issue
+- **Environment** - Package version, Node.js version, framework
 
-### Before Submitting a Bug Report
-
-- **Check existing issues** to avoid duplicates
-- **Try the latest version** to see if the issue persists
-- **Provide minimal reproduction** cases
-- **Include environment details** (Node.js version, OS, etc.)
+Keep it simple! We'd rather have a quick, clear report than a perfect one that takes forever to write.
 
 ## 💡 Proposing Features
 
-We love feature proposals! Here's how to suggest a new feature:
+We love feature proposals! Our feature request template keeps it simple:
 
-1. **Check existing issues** to see if someone else has suggested it
-2. **Open a discussion** or feature request issue
-3. **Describe the problem** you're trying to solve
-4. **Explain your proposed solution**
-5. **Consider alternative solutions**
-6. **Provide examples** of how the feature would be used
+- **What feature would you like?** - Describe what you want
+- **Why do you need this?** - What problem does this solve?
+- **How would you use it?** - Show a code example
+- **Additional context** - Any other helpful info
 
-### Feature Request Template
-
-````markdown
-## Summary
-
-Brief description of the feature
-
-## Problem
-
-What problem does this feature solve?
-
-## Proposed Solution
-
-How should this feature work?
-
-## Examples
-
-```typescript
-// Example usage
-const example = procedure().newFeature(/* configuration */).handler(/* ... */);
-```
-````
-
-## Alternatives
-
-What other solutions did you consider?
-
-## Implementation Notes
-
-Any technical considerations?
-
-```
+That's it! Don't worry about detailed implementation plans or extensive use cases - we can figure those out together in the discussion.
 
 ## 🎯 Good First Issues
 
@@ -378,36 +340,19 @@ fix(axios): handle timeout errors correctly
 docs(readme): update installation instructions
 test(procedures): add edge case tests
 
-````
+```
 
-#### Description Template
+#### Our Simple PR Template
 
-```markdown
-## Description
-Brief description of the changes
+Our pull request template is designed to be quick and easy:
 
-## Type of Change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
+- **What does this PR do?** - Brief description
+- **Type of change** - Select one (bug fix, feature, docs, etc.)
+- **Related issues** - Link any issues (Closes #123)
+- **Testing** - Basic checklist (tests pass, follows style, has tests)
+- **Additional notes** - Any other context
 
-## Testing
-- [ ] Tests pass locally
-- [ ] Added tests for new functionality
-- [ ] Updated tests for changed functionality
-
-## Checklist
-- [ ] Code follows the style guidelines
-- [ ] Self-review of the code
-- [ ] Commented code, particularly in hard-to-understand areas
-- [ ] Corresponding changes to documentation
-- [ ] No new warnings
-- [ ] New dependencies are justified
-
-## Related Issues
-Closes #123
-````
+Focus on the essentials - we can discuss details in the review!
 
 #### Code Review Process
 
