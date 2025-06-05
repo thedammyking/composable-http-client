@@ -1,4 +1,4 @@
-import type { ZodType } from 'zod/v4';
+import type { $ZodType } from 'zod/v4/core';
 
 import type { RetryDelay, OutputSchemaOrFn } from '../types/base';
 import type { ProcedureConfig } from '../types/config';
@@ -28,7 +28,7 @@ export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
   };
 
   const builderBase = Object.assign(callableWithoutCatchAll, {
-    input<TInputSchema extends ZodType>(schema: TInputSchema) {
+    input<TInputSchema extends $ZodType>(schema: TInputSchema) {
       if (config.inputSchema !== undefined && config.inputSchema !== null) {
         throw new Error('input() can only be called once.');
       }

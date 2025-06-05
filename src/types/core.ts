@@ -1,9 +1,9 @@
-import type { ZodType } from 'zod/v4';
+import type { $ZodType } from 'zod/v4/core';
 
 import type { Result, RetryDelay, OutputSchemaOrFn } from './base';
 
 // Utility type to extract Zod schema type
-type InferZodType<T> = T extends ZodType<infer U> ? U : never;
+type InferZodType<T> = T extends $ZodType<infer U> ? U : never;
 
 // Enhanced ProcedureBuilder with proper type tracking
 export interface ProcedureBuilder<
@@ -12,7 +12,7 @@ export interface ProcedureBuilder<
   TInput = unknown,
   TOutput = unknown,
 > {
-  input<TInputSchema extends ZodType>(
+  input<TInputSchema extends $ZodType>(
     schema: TInputSchema
   ): ProcedureBuilder<TCtx, TClient, InferZodType<TInputSchema>, TOutput>;
 
@@ -39,9 +39,9 @@ export interface ProcedureBuilder<
     TCtx,
     TClient,
     TInput,
-    TOutputSchema extends ZodType<infer U>
+    TOutputSchema extends $ZodType<infer U>
       ? U
-      : TOutputSchema extends (ctx: TCtx, input: TInput) => ZodType<infer V>
+      : TOutputSchema extends (ctx: TCtx, input: TInput) => $ZodType<infer V>
         ? V
         : TOutput
   >;

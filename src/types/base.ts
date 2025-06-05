@@ -1,4 +1,4 @@
-import type { ZodType } from 'zod/v4';
+import type { $ZodType } from 'zod/v4/core';
 
 export type GetTokensFn<Tokens extends Record<string, string> = Record<string, string>> =
   () => Tokens;
@@ -36,5 +36,5 @@ export interface Result<TData, TError = Error> {
 }
 
 export type OutputSchemaOrFn<TCtx, TInput, TOutput> =
-  | ZodType
-  | ((args: { readonly ctx: TCtx; readonly input: TInput; readonly output: TOutput }) => ZodType);
+  | $ZodType
+  | ((args: { readonly ctx: TCtx; readonly input: TInput; readonly output: TOutput }) => $ZodType);

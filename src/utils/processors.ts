@@ -1,16 +1,14 @@
-import type { ZodType } from 'zod/v4';
+import { type $ZodType, safeParse } from 'zod/v4/core';
 import type { OutputSchemaOrFn } from '../types/base';
 
-export async function processInput(input: unknown, inputSchema?: ZodType): Promise<unknown> {
+export async function processInput(input: unknown, inputSchema?: $ZodType): Promise<unknown> {
   if (inputSchema === undefined || inputSchema === null) return input;
 
-  try {
-    return inputSchema.parse(input);
-  } catch (error) {
-    throw new Error(
-      `Input validation failed: ${error instanceof Error ? error.message : String(error)}`
-    );
+  const result = safeParse(inputSchema, input);
+  if (!result.success) {
+    throw new Error(`Input validation failed: ${result.error.message}`);
   }
+  return result.data;
 }
 
 export async function processOutput(
@@ -20,17 +18,18 @@ export async function processOutput(
   input: unknown
 ): Promise<unknown> {
   if (outputSchemaOrFn === undefined || outputSchemaOrFn === null) return output;
-
-  try {
-    if (typeof outputSchemaOrFn === 'function') {
-      const schema = outputSchemaOrFn({ ctx, input, output });
-      return schema.parse(output);
-    } else {
-      return outputSchemaOrFn.parse(output);
+  if (typeof outputSchemaOrFn === 'function') {
+    const schema = outputSchemaOrFn({ ctx, input, output });
+    const result = safeParse(schema, output);
+    if (!result.success) {
+      throw new Error(`Output validation failed: ${result.error.message}`);
     }
-  } catch (error) {
-    throw new Error(
-      `Output validation failed: ${error instanceof Error ? error.message : String(error)}`
-    );
+    return result.data;
+  } else {
+    const result = safeParse(outputSchemaOrFn, output);
+    if (!result.success) {
+      throw new Error(`Output validation failed: ${result.error.message}`);
+    }
+    return result.data;
   }
 }

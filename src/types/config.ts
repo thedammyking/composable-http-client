@@ -1,9 +1,9 @@
-import type { ZodType } from 'zod/v4';
+import type { $ZodType } from 'zod/v4/core';
 
 import type { RetryDelay, OutputSchemaOrFn } from './base';
 
 export interface ProcedureConfig {
-  readonly inputSchema?: ZodType;
+  readonly inputSchema?: $ZodType;
   readonly outputSchemaOrFn?: OutputSchemaOrFn<unknown, unknown, unknown>;
   readonly retryOptions: { readonly retries?: number; readonly delay?: RetryDelay };
   readonly transformFn?: (output: unknown) => Promise<unknown>;
