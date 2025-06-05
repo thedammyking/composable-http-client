@@ -15,11 +15,12 @@ export function isValidURL(value: unknown): value is URL {
   }
 }
 
+const VALID_HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
+
 export function isValidHTTPMethod(value: unknown): value is HTTPMethod {
-  const validMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const;
   return (
     typeof value === 'string' &&
-    validMethods.includes(value.toUpperCase() as (typeof validMethods)[number])
+    VALID_HTTP_METHODS.includes(value.toUpperCase() as (typeof VALID_HTTP_METHODS)[number])
   );
 }
 
