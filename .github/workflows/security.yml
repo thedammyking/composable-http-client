@@ -57,7 +57,7 @@ jobs:
           fi
 
       - name: Run OSV-Scanner for comprehensive vulnerability scanning
-        uses: google/osv-scanner-action@v1.8.5
+        uses: google/osv-scanner-action@v2.0.2
         with:
           scan-args: |-
             --lockfile=pnpm-lock.yaml
