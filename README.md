@@ -52,10 +52,6 @@ yarn add composable-http-client zod
 
 ## Quick Start
 
-### 30-Second Example
-
-**[▶️ Try this example on StackBlitz](https://stackblitz.com/edit/composable-http-client-quickstart)**
-
 ### Basic Usage with Axios
 
 ```typescript
@@ -829,7 +825,13 @@ interface ProcedureConfig {
   readonly retryOptions: RetryOptions;
   readonly onStartFn?: () => void | Promise<void>;
   readonly onSuccessFn?: () => void | Promise<void>;
-  readonly onCompleteFn?: CompleteFn;
+  readonly onCompleteFn?: (info: {
+    readonly isSuccess: boolean;
+    readonly isError: boolean;
+    readonly input: unknown;
+    readonly output: unknown;
+    readonly error: Error | undefined;
+  }) => void | Promise<void>;
   readonly catchAllFn?: CatchAllFn;
   readonly ctx: unknown;
   readonly client: unknown;
@@ -842,6 +844,14 @@ interface RetryOptions {
 }
 
 type RetryDelay = (attempt: number, error: Error) => number;
+
+type CompleteFn = (info: {
+  readonly isSuccess: boolean;
+  readonly isError: boolean;
+  readonly input: unknown;
+  readonly output: unknown;
+  readonly error: Error | undefined;
+}) => void | Promise<void>;
 ```
 
 ### Procedure Builder Methods
@@ -1050,14 +1060,14 @@ Called on successful completion.
 Called after execution (success or failure).
 
 ```typescript
-.onComplete(async ({ result, error, duration }) => {
-  console.log(`Request completed in ${duration}ms`);
+.onComplete(async ({ isSuccess, isError, input, output, error }) => {
+  console.log(`Request completed`);
   hideLoadingSpinner();
 
-  if (error) {
+  if (isError && error) {
     analytics.track('user_fetch_error', { error: error.message });
-  } else {
-    analytics.track('user_fetch_complete', { userId: result?.id });
+  } else if (isSuccess && output) {
+    analytics.track('user_fetch_complete', { userId: output.id });
   }
 })
 ```
@@ -1127,12 +1137,11 @@ export const createMonitoredProcedure = (client: HttpClient) => {
         level: 'info',
       });
     })
-    .onComplete(({ error, duration }) => {
-      if (error) {
+    .onComplete(({ isSuccess, isError, input, output, error }) => {
+      if (isError && error) {
         captureException(error, {
           tags: {
             component: 'http-client',
-            duration: duration.toString(),
           },
         });
       }
