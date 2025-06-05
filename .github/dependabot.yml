@@ -74,7 +74,8 @@ updates:
       # Group security actions together
       security-actions:
         patterns:
-          - "snyk/actions/*"
+          - "google/osv-scanner-action"
+          - "aquasecurity/trivy-action"
           - "github/codeql-action/*"
           - "actions/dependency-review-action"
       # Group artifact and release actions

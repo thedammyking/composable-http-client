@@ -20,7 +20,7 @@ This repository uses a modular approach to CI/CD with separate workflows for dif
 **Triggers:** Push to `main`, Pull Requests, Monthly on Sundays at 2 AM UTC  
 **Purpose:** Vulnerability detection and dependency security
 
-- **Snyk Scanning:** High-severity vulnerability detection
+- **Multi-Tool Scanning:** pnpm audit, OSV-Scanner, and Trivy for comprehensive coverage
 - **Dependency Review:** License and security analysis for PRs
 - **Code Scanning:** SARIF uploads to GitHub Security tab
 - **Scheduled Scans:** Monthly security checks
@@ -88,7 +88,6 @@ Configure these status checks as required for branch protection:
 ### Required Secrets
 
 - `NPM_TOKEN` - NPM publishing token
-- `SNYK_TOKEN` - Snyk vulnerability scanning token
 - `CODECOV_TOKEN` - Code coverage reporting token
 
 ### Required Environments

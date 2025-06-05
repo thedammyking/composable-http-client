@@ -60,5 +60,7 @@ temp/
 # Husky
 .husky/_
 
-# Snyk
-.snyk 
+# Security scan outputs
+audit-results.json
+osv-results.sarif
+trivy-results.sarif 
