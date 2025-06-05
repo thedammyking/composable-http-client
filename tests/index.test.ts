@@ -74,6 +74,46 @@ describe('Composable HTTP Client', () => {
       expect(result.data).toEqual({ greeting: 'Hello World' });
     });
 
+    it('should support dynamic output schemas', async () => {
+      const basicSchema = z.object({ id: z.number() });
+      const detailedSchema = z.object({ id: z.number(), name: z.string() });
+
+      const testProcedure = procedure()
+        .input(z.object({ detailed: z.boolean() }))
+        .handler(async ({ input }) => {
+          if (input.detailed) {
+            return { id: 1, name: 'John Doe' };
+          }
+          return { id: 1 };
+        })
+        .output(({ input, output: _output }) => {
+          return input.detailed ? detailedSchema : basicSchema;
+        })
+        .catchAll(err => ({ error: err.message }));
+
+      // Test with detailed = false
+      const basicResult = await testProcedure({ detailed: false });
+      expect(basicResult.error).toBeNull();
+      expect(basicResult.data).toEqual({ id: 1 });
+
+      // Test with detailed = true
+      const detailedResult = await testProcedure({ detailed: true });
+      expect(detailedResult.error).toBeNull();
+      expect(detailedResult.data).toEqual({ id: 1, name: 'John Doe' });
+
+      // Test with mismatched output
+      // The handler returns a basic object, but we force validation against the detailed schema
+      const mismatchedProc = procedure()
+        .input(z.object({ detailed: z.boolean() }))
+        .handler(async () => ({ id: 1 })) // always returns basic
+        .output(() => detailedSchema) // always expects detailed
+        .catchAll(err => ({ error: err.message }));
+
+      const validationError = await mismatchedProc({ detailed: false });
+      expect(validationError.error).toBeDefined();
+      expect(validationError.data).toBeNull();
+    });
+
     it('should handle lifecycle hooks', async () => {
       const hooks = {
         onStart: false,
@@ -103,6 +143,72 @@ describe('Composable HTTP Client', () => {
       expect(hooks.onComplete).toBe(true);
     });
 
+    it('should call onComplete but not onSuccess when handler fails', async () => {
+      const hooks = {
+        onStart: false,
+        onSuccess: false,
+        onComplete: false,
+      };
+
+      const testProcedure = procedure()
+        .onStart(() => {
+          hooks.onStart = true;
+        })
+        .onSuccess(() => {
+          hooks.onSuccess = true;
+        })
+        .onComplete(() => {
+          hooks.onComplete = true;
+        })
+        .handler(async () => {
+          throw new Error('Handler failed');
+        })
+        .catchAll(err => ({ error: err.message }));
+
+      await testProcedure({});
+
+      expect(hooks.onStart).toBe(true);
+      expect(hooks.onSuccess).toBe(false);
+      expect(hooks.onComplete).toBe(true);
+    });
+
+    it('should propagate errors from onStart hook', async () => {
+      let handlerWasCalled = false;
+
+      const testProcedure = procedure()
+        .onStart(() => {
+          throw new Error('onStart failed');
+        })
+        .handler(async () => {
+          handlerWasCalled = true;
+          return { success: true };
+        })
+        .catchAll(err => ({ error: err.message }));
+
+      const result = await testProcedure({});
+
+      expect(handlerWasCalled).toBe(false);
+      expect(result).toEqual({
+        data: null,
+        error: { error: 'Error in onStart hook: onStart failed' },
+      });
+    });
+
+    it('should propagate errors from onSuccess hook', async () => {
+      const testProcedure = procedure()
+        .handler(async () => ({ success: true }))
+        .onSuccess(() => {
+          throw new Error('onSuccess failed');
+        })
+        .catchAll(err => ({ error: err.message }));
+
+      const result = await testProcedure({});
+      expect(result).toEqual({
+        data: null,
+        error: { error: 'Error in onSuccess hook: onSuccess failed' },
+      });
+    });
+
     it('should handle retry logic', async () => {
       let attempts = 0;
 
@@ -122,6 +228,34 @@ describe('Composable HTTP Client', () => {
       expect(result.data).toEqual({ success: true, attempts: 3 });
     });
 
+    it('should handle retry logic with a dynamic delay function', async () => {
+      let attempts = 0;
+      const delays: number[] = [];
+
+      const testProcedure = procedure()
+        .retry({
+          retries: 3,
+          delay: attempt => {
+            const delay = attempt * 10;
+            delays.push(delay);
+            return delay;
+          },
+        })
+        .handler(async () => {
+          attempts++;
+          if (attempts < 3) {
+            throw new Error('Server error');
+          }
+          return { success: true, attempts };
+        })
+        .catchAll(err => ({ error: err.message }));
+
+      const result = await testProcedure({});
+      expect(result.error).toBeNull();
+      expect(result.data).toEqual({ success: true, attempts: 3 });
+      expect(delays).toEqual([10, 20]);
+    });
+
     it('should handle transform function', async () => {
       const testProcedure = procedure()
         .handler(async () => {
@@ -135,6 +269,22 @@ describe('Composable HTTP Client', () => {
       const result = await testProcedure({});
       expect(result.error).toBeNull();
       expect(result.data).toEqual({ value: 10, doubled: 20 });
+    });
+
+    it('should fail output validation if transform is incompatible', async () => {
+      const outputSchema = z.object({
+        doubled: z.number(),
+      });
+
+      const testProcedure = procedure()
+        .handler(async () => ({ value: 10 }))
+        .transform(() => ({ notDoubled: 0 })) // Mismatched transform
+        .output(outputSchema)
+        .catchAll(err => ({ error: err.message }));
+
+      const result = await testProcedure({});
+      expect(result.error).toBeDefined();
+      expect(result.data).toBeNull();
     });
   });
 
