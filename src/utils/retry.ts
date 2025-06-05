@@ -10,8 +10,9 @@ export async function retry<T>(
   while (attempt < retries) {
     try {
       return await fn();
-    } catch (e: any) {
-      const status = e?.response?.status ?? e?.status ?? undefined;
+    } catch (e: unknown) {
+      const error = e as { response?: { status?: number }; status?: number };
+      const status = error?.response?.status ?? error?.status ?? undefined;
       if (typeof status === 'number' && status >= 400 && status < 500) {
         throw e;
       }
@@ -21,8 +22,8 @@ export async function retry<T>(
         throw e;
       }
 
-      const wait = typeof delay === 'function' ? delay(attempt, e) : delay;
-      if (wait && wait > 0) {
+      const wait = typeof delay === 'function' ? delay(attempt, e as Error) : delay;
+      if (wait !== null && wait !== undefined && wait > 0) {
         await new Promise(r => setTimeout(r, wait));
       }
     }

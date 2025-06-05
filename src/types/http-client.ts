@@ -1,15 +1,17 @@
 import type { ProcedureBuilder } from './core';
 
-export type HttpClientProcedureBuilder<TClient = any> = {
+export interface HttpClientProcedureBuilder<TClient = unknown> {
   (): ProcedureBuilder<null, TClient>;
-  handler(ctxHandler: () => any): HttpClientProcedureBuilderWithHandler<TClient>;
+  handler(ctxHandler: () => unknown): HttpClientProcedureBuilderWithHandler<TClient>;
   _getCtx(): null;
   _getClient(): TClient;
-};
+}
 
-export type HttpClientProcedureBuilderWithHandler<TClient = any> = {
-  (): ProcedureBuilder<any, TClient>;
-  catch(creationErrorHandler: (err: Error) => any): HttpClientProcedureBuilderWithHandler<TClient>;
-  _getCtx(): any;
+export interface HttpClientProcedureBuilderWithHandler<TClient = unknown> {
+  (): ProcedureBuilder<unknown, TClient>;
+  catch(
+    creationErrorHandler: (err: Error) => unknown
+  ): HttpClientProcedureBuilderWithHandler<TClient>;
+  _getCtx(): unknown;
   _getClient(): TClient;
-};
+}

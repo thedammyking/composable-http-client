@@ -19,11 +19,13 @@ export function createHttpClient<
 }: CoreClientParams<Tokens> & { interceptors?: Interceptors }): ClassicHttpClient<Response> {
   const instance: AxiosInstance = axios.create({ baseURL, timeout });
 
-  if (interceptors?.request) {
-    instance.interceptors.request.use(interceptors.request, interceptors.error);
+  if (interceptors?.request !== undefined && interceptors?.request !== null) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    instance.interceptors.request.use(interceptors.request as any, interceptors.error);
   }
-  if (interceptors?.response) {
-    instance.interceptors.response.use(interceptors.response, interceptors.error);
+  if (interceptors?.response !== undefined && interceptors?.response !== null) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    instance.interceptors.response.use(interceptors.response as any, interceptors.error);
   }
 
   async function coreRequest<T = Response>(
@@ -31,18 +33,19 @@ export function createHttpClient<
     retry = false
   ): Promise<T> {
     try {
-      if (addTracing)
+      if (addTracing !== undefined && addTracing !== null)
         await addTracing({ method: config.method ?? 'get', url: config.url ?? '', config });
-      const tokens = getTokens ? getTokens() : ({} as Tokens);
+      const tokens = getTokens !== undefined && getTokens !== null ? getTokens() : ({} as Tokens);
       const newHeaders = resolveHeaders(headers, tokens);
       config.headers = { ...config.headers, ...newHeaders };
       const res: AxiosResponse<T> = await instance.request<T>(config);
       return res.data;
-    } catch (error: any) {
-      if (logError) await logError(error);
+    } catch (error: unknown) {
+      if (logError !== undefined && logError !== null) await logError(error);
       // Check both error.response.status and error.status for 401
-      const is401 = error.response?.status === 401 || error.status === 401;
-      if (is401 && refreshToken && !retry) {
+      const errorWithResponse = error as { response?: { status?: number }; status?: number };
+      const is401 = errorWithResponse.response?.status === 401 || errorWithResponse.status === 401;
+      if (is401 && refreshToken !== undefined && refreshToken !== null && !retry) {
         await refreshToken();
         return coreRequest<T>(config, true);
       }

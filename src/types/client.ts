@@ -7,7 +7,7 @@ import type {
   AddTracingFn,
 } from './base';
 
-export interface ClassicHttpClient<Response = any> {
+export interface ClassicHttpClient<Response = unknown> {
   request: (config?: RequestConfig) => Promise<Response>;
   get: <T = Response>(url: string, config?: RequestConfig) => Promise<T>;
   post: <T = Response>(url: string, data?: unknown, config?: RequestConfig) => Promise<T>;
@@ -20,12 +20,12 @@ export interface ClassicHttpClient<Response = any> {
 }
 
 export interface Interceptors {
-  request?: (config: any) => any;
-  response?: (response: any) => any;
+  request?: (config: RequestConfig) => RequestConfig;
+  response?: (response: unknown) => unknown;
   error?: (error: unknown) => unknown;
 }
 
-export type CoreClientParams<Tokens extends Record<string, string> = Record<string, string>> = {
+export interface CoreClientParams<Tokens extends Record<string, string> = Record<string, string>> {
   baseURL: string;
   headers?: Record<string, string> | HeadersFn<Tokens>;
   getTokens?: GetTokensFn<Tokens>;
@@ -33,4 +33,4 @@ export type CoreClientParams<Tokens extends Record<string, string> = Record<stri
   logError?: LogErrorFn;
   addTracing?: AddTracingFn;
   timeout?: number;
-};
+}

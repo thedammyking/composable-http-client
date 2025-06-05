@@ -1,7 +1,8 @@
 import type { ZodType } from 'zod/v4';
+import type { OutputSchemaOrFn } from '../types/base';
 
-export async function processInput(input: any, inputSchema?: ZodType): Promise<any> {
-  if (!inputSchema) return input;
+export async function processInput(input: unknown, inputSchema?: ZodType): Promise<unknown> {
+  if (inputSchema === undefined || inputSchema === null) return input;
 
   try {
     return inputSchema.parse(input);
@@ -13,12 +14,12 @@ export async function processInput(input: any, inputSchema?: ZodType): Promise<a
 }
 
 export async function processOutput(
-  output: any,
-  outputSchemaOrFn: any,
-  ctx: any,
-  input: any
-): Promise<any> {
-  if (!outputSchemaOrFn) return output;
+  output: unknown,
+  outputSchemaOrFn: OutputSchemaOrFn<unknown, unknown, unknown> | undefined,
+  ctx: unknown,
+  input: unknown
+): Promise<unknown> {
+  if (outputSchemaOrFn === undefined || outputSchemaOrFn === null) return output;
 
   try {
     if (typeof outputSchemaOrFn === 'function') {

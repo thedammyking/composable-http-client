@@ -29,3 +29,17 @@ export type {
 
 // Re-exports from extend types
 export type { ExtendedProcedureBuilder, ExtendedProcedureBuilderWithHandler } from './extend';
+
+// Re-exports from utility types
+export type {
+  DeepReadonly,
+  RequireFields,
+  NonNullable,
+  NoAny,
+  Parameters,
+  ReturnType,
+  Brand,
+  SafeArrayAccess,
+  Complete,
+  TypePredicate,
+} from './utility';

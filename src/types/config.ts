@@ -1,17 +1,27 @@
 import type { ZodType } from 'zod/v4';
 
-import type { RetryDelay } from './base';
+import type { RetryDelay, OutputSchemaOrFn } from './base';
 
 export interface ProcedureConfig {
-  inputSchema?: ZodType;
-  outputSchemaOrFn?: any;
-  retryOptions: { retries?: number; delay?: RetryDelay };
-  transformFn?: (output: any) => any | Promise<any>;
-  catchAllFn?: (err: any) => any;
-  onStartFn?: () => void | Promise<void>;
-  onSuccessFn?: () => void | Promise<void>;
-  onCompleteFn?: (info: any) => void | Promise<void>;
-  mainHandler?: (params: any) => Promise<any> | any;
-  ctx: any;
-  client: any;
+  readonly inputSchema?: ZodType;
+  readonly outputSchemaOrFn?: OutputSchemaOrFn<unknown, unknown, unknown>;
+  readonly retryOptions: { readonly retries?: number; readonly delay?: RetryDelay };
+  readonly transformFn?: (output: unknown) => Promise<unknown>;
+  readonly catchAllFn?: (err: Error) => unknown;
+  readonly onStartFn?: () => void | Promise<void>;
+  readonly onSuccessFn?: () => void | Promise<void>;
+  readonly onCompleteFn?: (info: {
+    readonly isSuccess: boolean;
+    readonly isError: boolean;
+    readonly input: unknown;
+    readonly output: unknown;
+    readonly error: Error | undefined;
+  }) => void | Promise<void>;
+  readonly mainHandler?: (params: {
+    readonly input: unknown;
+    readonly ctx: unknown;
+    readonly client: unknown;
+  }) => Promise<unknown>;
+  readonly ctx: unknown;
+  readonly client: unknown;
 }

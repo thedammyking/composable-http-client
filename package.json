@@ -37,6 +37,8 @@
     "format": "prettier --write src/**/*.{ts,json,md}",
     "format:check": "prettier --check src/**/*.{ts,json,md}",
     "typecheck": "tsc --noEmit",
+    "typecheck:strict": "tsc --project tsconfig.dev.json",
+    "typecheck:watch": "tsc --noEmit --watch",
     "prepare": "husky"
   },
   "keywords": [

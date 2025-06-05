@@ -12,9 +12,9 @@ export function resolveHeaders<Tokens extends Record<string, string>>(
   return typeof headers === 'function' ? headers(tokens) : (headers ?? {});
 }
 
-export function buildClassicHttpClient<Response = any>(
+export function buildClassicHttpClient<Response = unknown>(
   baseURL: string,
-  coreRequest: <T = Response>(config: RequestConfig, ...args: any[]) => Promise<T>
+  coreRequest: <T = Response>(config: RequestConfig, retry?: boolean) => Promise<T>
 ): ClassicHttpClient<Response> {
   return {
     request: config => coreRequest({ ...config }),

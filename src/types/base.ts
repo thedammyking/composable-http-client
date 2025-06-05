@@ -10,27 +10,31 @@ export type HeadersFn<Tokens extends Record<string, string> = Record<string, str
 export type LogErrorFn = (error: unknown) => Promise<void>;
 
 export type AddTracingFn = (context: {
-  method: string;
-  url: string;
-  config: unknown;
+  readonly method: string;
+  readonly url: string;
+  readonly config: unknown;
 }) => Promise<void>;
 
 export type RefreshTokenFn = () => Promise<void>;
 
 export interface RequestConfig {
-  url?: string;
-  method?: string;
-  headers?: Record<string, string>;
-  data?: unknown;
-  timeout?: number;
-  [key: string]: unknown;
+  readonly url?: string;
+  readonly method?: string;
+  readonly headers?: Record<string, string>;
+  readonly data?: unknown;
+  readonly timeout?: number;
+  readonly [key: string]: unknown;
 }
 
 export type FetchLike = typeof fetch;
 
-export type RetryDelay = number | ((currentAttempt: number, err: any) => number);
-export type Result<T> = { result: T | null; error: any | null };
+export type RetryDelay = number | ((currentAttempt: number, err: Error) => number);
+
+export interface Result<T> {
+  readonly result: T | null;
+  readonly error: Error | null;
+}
 
 export type OutputSchemaOrFn<TCtx, TInput, TOutput> =
   | ZodType
-  | ((args: { ctx: TCtx; input: TInput; output: TOutput }) => ZodType);
+  | ((args: { readonly ctx: TCtx; readonly input: TInput; readonly output: TOutput }) => ZodType);

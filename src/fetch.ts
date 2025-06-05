@@ -2,7 +2,7 @@ import type { ClassicHttpClient, CoreClientParams, FetchLike, RequestConfig } fr
 import { buildClassicHttpClient, buildUrl, resolveHeaders } from './utils';
 
 function withTimeout<T>(promise: Promise<T>, timeout: number): Promise<T> {
-  if (!timeout) return promise; // 0 or falsy means unlimited, no timer
+  if (timeout === 0 || timeout === null || timeout === undefined) return promise; // 0 or falsy means unlimited, no timer
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('Request timeout')), timeout);
     promise
@@ -19,7 +19,7 @@ function withTimeout<T>(promise: Promise<T>, timeout: number): Promise<T> {
 
 function createFetchCoreRequest<
   Tokens extends Record<string, string> = Record<string, string>,
-  Response = any,
+  Response = unknown,
   Fetch extends FetchLike = FetchLike,
 >(
   fetchImpl: Fetch,
@@ -39,8 +39,8 @@ function createFetchCoreRequest<
   ): Promise<T> {
     const method = (config.method ?? 'get').toUpperCase();
     const url = buildUrl(baseURL, config.url ?? '');
-    if (addTracing) await addTracing({ method, url, config });
-    const tokens = getTokens ? getTokens() : ({} as Tokens);
+    if (addTracing !== undefined && addTracing !== null) await addTracing({ method, url, config });
+    const tokens = getTokens !== undefined && getTokens !== null ? getTokens() : ({} as Tokens);
     const reqHeaders: Record<string, string> = {
       ...resolveHeaders(headers, tokens),
       ...config.headers,
@@ -48,7 +48,7 @@ function createFetchCoreRequest<
     const fetchOptions: RequestInit = {
       method,
       headers: reqHeaders,
-      body: config.data ? JSON.stringify(config.data) : null,
+      body: config.data !== undefined && config.data !== null ? JSON.stringify(config.data) : null,
     };
 
     try {
@@ -62,15 +62,24 @@ function createFetchCoreRequest<
         }
         if (!res.ok) {
           const error = new Error('Request failed');
-          (error as any).response = { status: res.status, data: body };
+          (error as { response?: { status: number; data: unknown } }).response = {
+            status: res.status,
+            data: body,
+          };
           throw error;
         }
         return body as T;
       });
       return await withTimeout<T>(fetchPromise, config.timeout ?? timeout);
     } catch (error: unknown) {
-      if (logError) await logError(error);
-      if ((error as any).response?.status === 401 && refreshToken && !retry) {
+      if (logError !== undefined && logError !== null) await logError(error);
+      const errorWithResponse = error as { response?: { status?: number } };
+      if (
+        errorWithResponse.response?.status === 401 &&
+        refreshToken !== undefined &&
+        refreshToken !== null &&
+        !retry
+      ) {
         await refreshToken();
         return coreRequest<T>(config, true);
       }
@@ -81,7 +90,7 @@ function createFetchCoreRequest<
 
 export function createHttpClient<
   Tokens extends Record<string, string> = Record<string, string>,
-  Response = any,
+  Response = unknown,
 >(params: CoreClientParams<Tokens>): ClassicHttpClient<Response> {
   const coreRequest = createFetchCoreRequest<Tokens, Response>(fetch, params);
   return buildClassicHttpClient<Response>(params.baseURL, coreRequest);
