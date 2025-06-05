@@ -21,6 +21,7 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      upload_url: ${{ steps.release.outputs.upload_url }}
 
     steps:
       - name: Run Release Please
@@ -29,6 +30,12 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+      - name: Debug Release Please Outputs
+        run: |
+          echo "Release created: ${{ steps.release.outputs.release_created }}"
+          echo "Tag name: ${{ steps.release.outputs.tag_name }}"
+          echo "Upload URL: ${{ steps.release.outputs.upload_url }}"
 
   publish:
     name: Publish to NPM
@@ -69,12 +76,19 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Create and Upload GitHub Release Assets
+      - name: Create GitHub Release Assets
         run: |
           tar -czf composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz dist/
-          gh release upload ${{ needs.release-please.outputs.tag_name }} composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release-please.outputs.upload_url }}
+          asset_path: ./composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz
+          asset_name: composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz
+          asset_content_type: application/gzip
 
       - name: Announce Release
         if: success()
