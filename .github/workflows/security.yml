@@ -54,15 +54,6 @@ jobs:
             fi
           fi
 
-      - name: Run OSV-Scanner for comprehensive vulnerability scanning
-        uses: google/osv-scanner-action@v2.0.2
-        with:
-          scan-args: |-
-            --lockfile=pnpm-lock.yaml
-            --recursive
-            ./
-        continue-on-error: true
-
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
@@ -71,14 +62,6 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'HIGH,CRITICAL'
-        continue-on-error: true
-
-      - name: Upload OSV-Scanner results to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: osv-results.sarif
-          category: 'osv-scanner'
         continue-on-error: true
 
       - name: Upload Trivy results to GitHub Code Scanning
@@ -99,6 +82,20 @@ jobs:
           echo ""
           echo "📊 Results have been uploaded to GitHub Code Scanning"
           echo "🔍 Check the Security tab for detailed vulnerability reports"
+
+  osv-scanner:
+    name: OSV-Scanner
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.0.2
+    if: github.event_name != 'release' && (github.event.pull_request.draft == false || github.event_name == 'push' || github.event_name == 'schedule')
+    with:
+      scan-args: |-
+        --lockfile=pnpm-lock.yaml
+        --recursive
+        ./
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
   dependency-review:
     name: Dependency Review
