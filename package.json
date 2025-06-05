@@ -39,6 +39,8 @@
     "typecheck": "tsc --noEmit",
     "typecheck:strict": "tsc --project tsconfig.dev.json",
     "typecheck:watch": "tsc --noEmit --watch",
+    "size": "npm run build && npm run size:check",
+    "size:check": "echo '=== Bundle Sizes ===' && ls -lh dist/*.{js,cjs} | awk '{printf \"%-25s %s\\n\", $9, $5}' && echo '\n=== Total Package Size ===' && du -sh dist/ && echo '\n=== Gzipped Sizes ===' && gzip -9 -c dist/index.js | wc -c | awk '{printf \"index.js (gzipped): %s bytes\\n\", $1}' && gzip -9 -c dist/index.cjs | wc -c | awk '{printf \"index.cjs (gzipped): %s bytes\\n\", $1}'",
     "prepare": "husky"
   },
   "keywords": [
