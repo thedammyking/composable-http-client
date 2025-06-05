@@ -50,7 +50,7 @@ export function createCallableProcedure<TResult = unknown>(
         });
       }
 
-      return { result: output, error: null };
+      return { data: output, error: null };
     } catch (e) {
       error = e as Error;
 
@@ -72,7 +72,7 @@ export function createCallableProcedure<TResult = unknown>(
         config.catchAllFn !== undefined && config.catchAllFn !== null
           ? config.catchAllFn(error)
           : error;
-      return { result: null, error: finalError as Error | null };
+      return { data: null, error: finalError as Error | null };
     }
   };
 

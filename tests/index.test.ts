@@ -49,12 +49,12 @@ describe('Composable HTTP Client', () => {
       // Valid input
       const result1 = await testProcedure({ name: 'John', age: 30 });
       expect(result1.error).toBeNull();
-      expect(result1.result).toEqual({ greeting: 'Hello John, you are 30 years old' });
+      expect(result1.data).toEqual({ greeting: 'Hello John, you are 30 years old' });
 
       // Invalid input - intentionally missing 'age' property to test validation
       const result2 = await testProcedure({ name: 'John' } as any); // missing age
       expect(result2.error).toBeDefined();
-      expect(result2.result).toBeNull();
+      expect(result2.data).toBeNull();
     });
 
     it('should validate output with Zod schema', async () => {
@@ -71,7 +71,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testProcedure({});
       expect(result.error).toBeNull();
-      expect(result.result).toEqual({ greeting: 'Hello World' });
+      expect(result.data).toEqual({ greeting: 'Hello World' });
     });
 
     it('should handle lifecycle hooks', async () => {
@@ -119,7 +119,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testProcedure({});
       expect(result.error).toBeNull();
-      expect(result.result).toEqual({ success: true, attempts: 3 });
+      expect(result.data).toEqual({ success: true, attempts: 3 });
     });
 
     it('should handle transform function', async () => {
@@ -134,7 +134,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testProcedure({});
       expect(result.error).toBeNull();
-      expect(result.result).toEqual({ value: 10, doubled: 20 });
+      expect(result.data).toEqual({ value: 10, doubled: 20 });
     });
   });
 
@@ -162,7 +162,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testProcedure({ action: 'test' });
       expect(result.error).toBeNull();
-      expect(result.result).toEqual({
+      expect(result.data).toEqual({
         userId: 123,
         role: 'admin',
         action: 'test',
@@ -211,7 +211,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testProcedure({ userId: 789, action: 'create' });
       expect(result.error).toBeNull();
-      const resultData = result.result as any;
+      const resultData = result.data as any;
       expect(resultData?.apiKey).toBe('secret123');
       expect(resultData?.version).toBe('1.0');
       expect(resultData?.sessionId).toBe('sess_456');
@@ -282,7 +282,7 @@ describe('Composable HTTP Client', () => {
       });
 
       expect(result.error).toBeNull();
-      const resultData = result.result as any;
+      const resultData = result.data as any;
       expect(resultData?.success).toBe(true);
       expect(resultData?.user.name).toBe('John Doe');
       expect(resultData?.settings.theme).toBe('dark');
@@ -320,7 +320,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testAction({ name: 'John' });
       expect(result.error).toBeNull();
-      const resultData = result.result as any;
+      const resultData = result.data as any;
       expect(resultData?.hasClient).toBe(true);
     });
   });

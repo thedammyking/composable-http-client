@@ -31,7 +31,7 @@ export type FetchLike = typeof fetch;
 export type RetryDelay = number | ((currentAttempt: number, err: Error) => number);
 
 export interface Result<T> {
-  readonly result: T | null;
+  readonly data: T | null;
   readonly error: Error | null;
 }
 
