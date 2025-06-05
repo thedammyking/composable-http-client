@@ -1,0 +1,70 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pr-validation:
+    name: Pull Request Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Wait for tests
+        uses: fountainhead/action-wait-for-check@v1.2.0
+        id: wait-for-tests
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Test & Lint
+          ref: ${{ github.event.pull_request.head.sha }}
+          timeoutSeconds: 1800
+          intervalSeconds: 30
+
+      - name: Wait for security scan
+        uses: fountainhead/action-wait-for-check@v1.2.0
+        id: wait-for-security
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Security Scan
+          ref: ${{ github.event.pull_request.head.sha }}
+          timeoutSeconds: 900
+          intervalSeconds: 30
+
+      - name: Wait for build
+        uses: fountainhead/action-wait-for-check@v1.2.0
+        id: wait-for-build
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Build Package
+          ref: ${{ github.event.pull_request.head.sha }}
+          timeoutSeconds: 600
+          intervalSeconds: 30
+
+      - name: PR Validation Complete
+        if: steps.wait-for-tests.outputs.conclusion == 'success' && steps.wait-for-security.outputs.conclusion == 'success' && steps.wait-for-build.outputs.conclusion == 'success'
+        run: |
+          echo "✅ All pull request validation checks have passed:"
+          echo "   - Tests completed across Node.js 20, 22, 24"
+          echo "   - Security scan completed"
+          echo "   - Dependency review completed"
+          echo "   - Build verification completed"
+          echo "   - Code quality checks passed"
+          echo ""
+          echo "This pull request is ready for review! 🚀"
+
+      - name: PR Validation Failed
+        if: steps.wait-for-tests.outputs.conclusion != 'success' || steps.wait-for-security.outputs.conclusion != 'success' || steps.wait-for-build.outputs.conclusion != 'success'
+        run: |
+          echo "❌ Pull request validation failed:"
+          echo "   - Tests: ${{ steps.wait-for-tests.outputs.conclusion }}"
+          echo "   - Security: ${{ steps.wait-for-security.outputs.conclusion }}"
+          echo "   - Build: ${{ steps.wait-for-build.outputs.conclusion }}"
+          echo ""
+          echo "Please check the failed jobs and fix any issues."
+          exit 1

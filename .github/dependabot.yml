@@ -1,0 +1,86 @@
+version: 2
+updates:
+  # Enable version updates for npm dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "@thedammyking"
+    assignees:
+      - "@thedammyking"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    groups:
+      # Group TypeScript ESLint packages together
+      typescript-eslint:
+        patterns:
+          - "@typescript-eslint/*"
+      # Group testing packages together  
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "msw"
+      # Group build tools together
+      build-tools:
+        patterns:
+          - "vite"
+          - "vite-plugin-*"
+          - "typescript"
+      # Group linting and formatting tools
+      code-quality:
+        patterns:
+          - "eslint"
+          - "prettier"
+          - "lint-staged"
+          - "@commitlint/*"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "@thedammyking"
+    assignees:
+      - "@thedammyking"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
+    groups:
+      # Group setup actions together
+      setup-actions:
+        patterns:
+          - "actions/checkout"
+          - "actions/setup-node"
+          - "pnpm/action-setup"
+      # Group security actions together
+      security-actions:
+        patterns:
+          - "snyk/actions/*"
+          - "github/codeql-action/*"
+          - "actions/dependency-review-action"
+      # Group artifact and release actions
+      artifact-actions:
+        patterns:
+          - "actions/upload-artifact"
+          - "actions/upload-release-asset"
+          - "codecov/codecov-action"
+          - "googleapis/release-please-action" 

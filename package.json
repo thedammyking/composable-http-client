@@ -1,0 +1,97 @@
+{
+  "name": "composable-http-client",
+  "version": "1.0.0",
+  "description": "A composable HTTP client library with procedure builders, schema validation, and retry logic",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./axios": {
+      "import": "./dist/axios.js",
+      "require": "./dist/axios.cjs",
+      "types": "./dist/axios.d.ts"
+    },
+    "./fetch": {
+      "import": "./dist/fetch.js",
+      "require": "./dist/fetch.cjs",
+      "types": "./dist/fetch.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly --declaration --outDir dist",
+    "dev": "vite build --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write src/**/*.{ts,json,md}",
+    "format:check": "prettier --check src/**/*.{ts,json,md}",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky"
+  },
+  "keywords": [
+    "http",
+    "client",
+    "composable",
+    "typescript",
+    "zod",
+    "axios",
+    "fetch",
+    "retry",
+    "validation",
+    "framework-agnostic",
+    "nodejs",
+    "browser",
+    "universal",
+    "http-client",
+    "composable-http",
+    "composable-http-client",
+    "composable-http-client-library"
+  ],
+  "author": "Oluwadamilola Babalola<@thedammyking>",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.1",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "zod": "^3.25.51"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "@types/node": "^22.15.29",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
+    "@vitest/coverage-v8": "^3.2.1",
+    "eslint": "^9.28.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "msw": "^2.9.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.1"
+  },
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint src --ext .ts",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}
