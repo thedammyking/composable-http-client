@@ -31,8 +31,8 @@ Whether you're building with React, Vue, Svelte, or vanilla JavaScript, working 
 - 🔄 **Retry Logic**: Built-in retry mechanisms with customizable delays
 - 🧪 **Dual HTTP Support**: Works with both Axios and native Fetch
 - 🎣 **Lifecycle Hooks**: onStart, onSuccess, onComplete hooks
-- 🔧 **Middleware Support**: Transform responses and handle errors
-- 🌐 **Framework Agnostic**: Works in Node.js (18+) and all modern browsers
+- 🔧 **Transform & Hooks**: Transform responses and handle errors with lifecycle hooks
+- 🌐 **Framework Agnostic**: Works in Node.js (20+) and all modern browsers
 - 🪶 **Tiny Bundle**: Only ~2.8KB gzipped - perfect for performance-conscious applications
 - 📦 **Multiple Formats**: Supports both CJS and ESM for maximum compatibility
 
@@ -49,7 +49,7 @@ pnpm add composable-http-client zod
 yarn add composable-http-client zod
 ```
 
-> **Note**: Zod is a peer dependency required for schema validation. If you prefer not to use validation, you can skip Zod installation.
+> **Note**: Zod is a dependency required for schema validation. While you can skip using `.input()` and `.output()` methods, Zod will still be included in your bundle.
 
 ## Quick Start
 
@@ -97,13 +97,13 @@ if (result.error) {
 }
 ```
 
-### Basic Usage with Fetch (Node.js 18+ & Browsers)
+### Basic Usage with Fetch (Node.js 20+ & Browsers)
 
 ```typescript
 import { createHttpClientProcedure } from 'composable-http-client';
 import { createHttpClient } from 'composable-http-client/fetch';
 
-// Create HTTP client using native fetch (available in Node.js 18+ and all modern browsers)
+// Create HTTP client using native fetch (available in Node.js 20+ and all modern browsers)
 const client = createHttpClient({
   baseURL: 'https://api.example.com',
   headers: { Authorization: 'Bearer your-token' },
@@ -119,9 +119,9 @@ This library is **framework agnostic** and works seamlessly across different Jav
 
 ### 🟢 **Node.js Support**
 
-- **Minimum version**: Node.js 18.0.0+
+- **Minimum version**: Node.js 20.0.0+
 - **Axios adapter**: Full support with interceptors
-- **Fetch adapter**: Uses built-in `fetch` API (Node.js 18+)
+- **Fetch adapter**: Uses built-in `fetch` API (Node.js 20+)
 - **CommonJS & ESM**: Both module systems supported
 
 ### 🌐 **Browser Support**
@@ -149,7 +149,7 @@ This library is **framework agnostic** and works seamlessly across different Jav
 // For maximum compatibility across all environments
 import { createHttpClient } from 'composable-http-client/axios';
 
-// For modern environments with native fetch (Node.js 18+, browsers)
+// For modern environments with native fetch (Node.js 20+, browsers)
 import { createHttpClient } from 'composable-http-client/fetch';
 
 // The core procedure builder works with any HTTP client
@@ -211,7 +211,7 @@ Configures retry behavior:
 ```typescript
 .retry({
   retries: 3,
-  delay: 1000 // or (attempt, error) => attempt * 1000
+  delay: 1000 // or (currentAttempt, error) => currentAttempt * 1000
 })
 ```
 
@@ -299,13 +299,13 @@ const robustProcedure = procedure()
   .input(userInputSchema)
   .retry({
     retries: 3,
-    delay: (attempt, error) => {
+    delay: (currentAttempt, error) => {
       // Exponential backoff for server errors
-      if (error.status >= 500) {
-        return Math.pow(2, attempt) * 1000;
+      if (error.response?.status >= 500) {
+        return Math.pow(2, currentAttempt) * 1000;
       }
       // Fixed delay for rate limiting
-      if (error.status === 429) {
+      if (error.response?.status === 429) {
         return 5000;
       }
       // No retry for client errors
@@ -497,18 +497,20 @@ afterAll(() => server.close());
 #### Type Inference Problems
 
 ```typescript
-// ❌ Type inference lost
-const procedure = createHttpClientProcedure(client)
-  .input(schema)
-  .handler(({ input }) => {
-    // input type is 'unknown'
-  });
+// ❌ Type inference lost without input schema
+const procedure = createHttpClientProcedure(client).handler(({ input }) => {
+  // input type is 'unknown' because no .input() was called
+  return client.get('/users');
+});
 
-// ✅ Explicit typing
-const procedure = createHttpClientProcedure<MyContext, MyClient>(client)
-  .input(schema)
-  .handler(({ input }: { input: MyInputType }) => {
-    // input is properly typed
+// ✅ Proper type inference with input schema
+const userInputSchema = z.object({ userId: z.string() });
+
+const procedure = createHttpClientProcedure(client)
+  .input(userInputSchema) // This enables type inference
+  .handler(({ input }) => {
+    // input is now properly typed as { userId: string }
+    return client.get(`/users/${input.userId}`);
   });
 ```
 
@@ -616,13 +618,13 @@ const createOrder = procedure()
     return client.post('/orders', input);
   })
   .output(orderSchema)
-  .onSuccess(order => {
-    analytics.track('order_created', { orderId: order.id });
+  .onSuccess(() => {
+    analytics.track('order_created');
   })
   .catchAll(error => ({
     error: error.message,
     code: error.code,
-    recoverable: error.status !== 400,
+    recoverable: error.response?.status !== 400,
   }));
 ```
 
@@ -840,7 +842,7 @@ interface RetryOptions {
   delay: number | RetryDelay;
 }
 
-type RetryDelay = (attempt: number, error: Error) => number;
+type RetryDelay = (currentAttempt: number, error: Error) => number;
 
 type CompleteFn = (info: {
   readonly isSuccess: boolean;
@@ -959,7 +961,7 @@ interface RetryOptions {
   delay: number | RetryDelay; // Delay between retries
 }
 
-type RetryDelay = (attempt: number, error: Error) => number;
+type RetryDelay = (currentAttempt: number, error: Error) => number;
 ```
 
 **Examples**:
@@ -971,15 +973,15 @@ type RetryDelay = (attempt: number, error: Error) => number;
 // Exponential backoff
 .retry({
   retries: 5,
-  delay: (attempt, error) => Math.pow(2, attempt) * 1000
+  delay: (currentAttempt, error) => Math.pow(2, currentAttempt) * 1000
 })
 
 // Conditional retry based on error
 .retry({
   retries: 3,
-  delay: (attempt, error) => {
-    if (error.status === 429) return 5000; // Rate limit
-    if (error.status >= 500) return attempt * 2000; // Server error
+  delay: (currentAttempt, error) => {
+    if (error.response?.status === 429) return 5000; // Rate limit
+    if (error.response?.status >= 500) return currentAttempt * 2000; // Server error
     return 0; // Don't retry client errors
   }
 })
@@ -992,12 +994,8 @@ type RetryDelay = (attempt: number, error: Error) => number;
 **Function Signature**:
 
 ```typescript
-type TransformFunction<TInput, TOutput, TTransformed> = (
-  output: TOutput,
-  context: {
-    input: TInput;
-    ctx: TContext;
-  }
+type TransformFunction<TOutput, TTransformed> = (
+  output: TOutput
 ) => TTransformed | Promise<TTransformed>;
 ```
 
@@ -1011,12 +1009,10 @@ type TransformFunction<TInput, TOutput, TTransformed> = (
   version: '1.0'
 }))
 
-// Transform based on input
-.transform((output, { input }) => ({
+// Transform data structure
+.transform((output) => ({
   ...output,
-  displayName: input.format === 'short'
-    ? output.name.split(' ')[0]
-    : output.name
+  displayName: output.name?.split(' ')[0] || 'Unknown'
 }))
 
 // Async transformation
@@ -1040,15 +1036,14 @@ Called before procedure execution.
 })
 ```
 
-#### `.onSuccess(fn: (data: TData) => void | Promise<void>)`
+#### `.onSuccess(fn: () => void | Promise<void>)`
 
 Called on successful completion.
 
 ```typescript
-.onSuccess(async (userData) => {
-  console.log(`User ${userData.name} fetched successfully`);
-  analytics.track('user_fetch_success', { userId: userData.id });
-  updateUserCache(userData);
+.onSuccess(async () => {
+  console.log('User fetched successfully');
+  analytics.track('user_fetch_success');
 })
 ```
 
@@ -1253,7 +1248,7 @@ function UserProfile({ userId }: { userId: string }) {
 | **Lifecycle Hooks**                 | ✅ onStart, onSuccess, onComplete | ❌ None                 | ❌ None                  |
 | **Interceptors**                    | ❌ None (has lifecycle hooks)     | ✅ Full interceptor API | ❌ None                  |
 | **Browser Support**                 | ✅ Modern browsers                | ✅ IE11+                | ✅ Modern browsers       |
-| **Node.js Support**                 | ✅ 18+                            | ✅ All versions         | ✅ 18+ (native)          |
+| **Node.js Support**                 | ✅ 20+                            | ✅ All versions         | ✅ 18+ (native)          |
 | **Learning Curve**                  | 📚 Medium                         | 📚 Low                  | 📚 Low                   |
 
 ## Migration Guides
@@ -1432,9 +1427,9 @@ if (result.error) {
 
 ### General Usage
 
-**Q: Can I use this library without Zod?**
+**Q: Can I use this library without Zod validation?**
 
-A: Yes! While Zod is recommended for type safety and validation, you can skip the `.input()` and `.output()` methods and just use `.handler()` and `.catchAll()`.
+A: Yes! While Zod is included as a dependency, you can skip the `.input()` and `.output()` methods and just use `.handler()` and `.catchAll()` for runtime functionality without validation.
 
 ```typescript
 const getUser = procedure()
@@ -1448,7 +1443,7 @@ const getUser = procedure()
 
 A:
 
-- **Fetch adapter**: Use for modern environments (Node.js 18+, modern browsers) when you want the smallest bundle size
+- **Fetch adapter**: Use for modern environments (Node.js 20+, modern browsers) when you want the smallest bundle size
 - **Axios adapter**: Use for maximum compatibility, better error handling, and when you need advanced HTTP features
 
 **Q: Can I use multiple HTTP clients in the same application?**
