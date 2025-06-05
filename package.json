@@ -30,7 +30,7 @@
     "build": "vite build && tsc --emitDeclarationOnly --declaration --outDir dist",
     "dev": "vite build --watch",
     "test": "vitest",
-    "test:run": "vitest run",
+    "test:run": "vitest run --reporter=junit --outputFile=test-report.junit.xml",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
@@ -75,6 +75,7 @@
     "zod": "^3.25.51"
   },
   "devDependencies": {
+    "@codecov/vite-plugin": "^1.9.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@eslint/js": "^9.28.0",

@@ -1,12 +1,18 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
+import { codecovVitePlugin } from '@codecov/vite-plugin';
 
 export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
       rollupTypes: true,
+    }),
+    codecovVitePlugin({
+      enableBundleAnalysis: process.env.CODECOV_TOKEN !== undefined,
+      bundleName: 'composables-http-client',
+      uploadToken: process.env.CODECOV_TOKEN,
     }),
   ],
   build: {
