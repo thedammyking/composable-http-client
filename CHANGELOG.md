@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.0.3...composable-http-client-v1.0.4) (2025-06-05)
+
+
+### Bug Fixes
+
+* add CODECOV_TOKEN environment variable to build workflow for enhanced coverage reporting ([4d64689](https://github.com/thedammyking/composable-http-client/commit/4d6468906477912b10a2988f304d63acb10004cd))
+
 ## [1.0.3](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.0.2...composable-http-client-v1.0.3) (2025-06-05)
 
 
