@@ -51,8 +51,8 @@ describe('Composable HTTP Client', () => {
       expect(result1.error).toBeNull();
       expect(result1.result).toEqual({ greeting: 'Hello John, you are 30 years old' });
 
-      // Invalid input
-      const result2 = await testProcedure({ name: 'John' }); // missing age
+      // Invalid input - intentionally missing 'age' property to test validation
+      const result2 = await testProcedure({ name: 'John' } as any); // missing age
       expect(result2.error).toBeDefined();
       expect(result2.result).toBeNull();
     });
@@ -138,6 +138,153 @@ describe('Composable HTTP Client', () => {
     });
   });
 
+  describe('Enhanced Type Safety', () => {
+    it('should demonstrate typed context flow through createHttpClientProcedure', async () => {
+      // Step 1: createHttpClientProcedure with typed context
+      const baseWithContext = createHttpClientProcedure(mockClient).handler(() => {
+        return { userId: 123, role: 'admin' as const };
+      });
+
+      const testProcedure = baseWithContext()
+        .input(z.object({ action: z.string() }))
+        .handler(async ({ ctx, input, client }) => {
+          // ctx should be typed as { userId: number, role: 'admin' }
+          // input should be typed as { action: string }
+          // client should be typed as the original client type
+          return {
+            userId: ctx.userId,
+            role: ctx.role,
+            action: input.action,
+            hasClient: typeof client.get === 'function',
+          };
+        })
+        .catchAll(err => ({ error: err.message }));
+
+      const result = await testProcedure({ action: 'test' });
+      expect(result.error).toBeNull();
+      expect(result.result).toEqual({
+        userId: 123,
+        role: 'admin',
+        action: 'test',
+        hasClient: true,
+      });
+    });
+
+    it('should demonstrate typed context flow through extendProcedure', async () => {
+      // Step 1: Create base procedure with context
+      const baseWithContext = createHttpClientProcedure(mockClient).handler(() => {
+        return { apiKey: 'secret123', version: '1.0' };
+      });
+
+      // Step 2: Extend with additional context
+      const extendedProcedure = extendProcedure(baseWithContext).handler(({ ctx }) => {
+        // ctx should be typed as { apiKey: string, version: string }
+        // client should be typed as the original client type
+        return {
+          ...ctx,
+          sessionId: 'sess_456',
+          timestamp: Date.now(),
+        };
+      });
+
+      // Step 3: Final procedure using both contexts
+      const testProcedure = extendedProcedure()
+        .input(z.object({ userId: z.number(), action: z.string() }))
+        .handler(async ({ ctx, input, client }) => {
+          // ctx should be typed as { apiKey: string, version: string, sessionId: string, timestamp: number }
+          // input should be typed as { userId: number, action: string }
+          return {
+            apiKey: ctx.apiKey,
+            version: ctx.version,
+            sessionId: ctx.sessionId,
+            timestamp: ctx.timestamp,
+            userId: input.userId,
+            action: input.action,
+            hasClient: typeof client.post === 'function',
+          };
+        })
+        .catchAll(err => ({ error: err.message }));
+
+      const result = await testProcedure({ userId: 789, action: 'create' });
+      expect(result.error).toBeNull();
+      const resultData = result.result as any;
+      expect(resultData?.apiKey).toBe('secret123');
+      expect(resultData?.version).toBe('1.0');
+      expect(resultData?.sessionId).toBe('sess_456');
+      expect(resultData?.userId).toBe(789);
+      expect(resultData?.action).toBe('create');
+      expect(resultData?.hasClient).toBe(true);
+      expect(typeof resultData?.timestamp).toBe('number');
+    });
+
+    it('should handle complex input/output type inference', async () => {
+      const inputSchema = z.object({
+        user: z.object({
+          id: z.number(),
+          name: z.string(),
+          email: z.string().email(),
+        }),
+        preferences: z.object({
+          theme: z.enum(['light', 'dark']),
+          notifications: z.boolean(),
+        }),
+      });
+
+      const outputSchema = z.object({
+        success: z.boolean(),
+        user: z.object({
+          id: z.number(),
+          name: z.string(),
+          email: z.string(),
+        }),
+        settings: z.object({
+          theme: z.string(),
+          notifications: z.boolean(),
+          updatedAt: z.string(),
+        }),
+      });
+
+      const testProcedure = procedure()
+        .input(inputSchema)
+        .handler(async ({ input }) => {
+          // input should be fully typed based on the Zod schema
+          return {
+            success: true,
+            user: {
+              id: input.user.id,
+              name: input.user.name,
+              email: input.user.email,
+            },
+            settings: {
+              theme: input.preferences.theme,
+              notifications: input.preferences.notifications,
+              updatedAt: new Date().toISOString(),
+            },
+          };
+        })
+        .output(outputSchema)
+        .catchAll(err => ({ error: err.message }));
+
+      const result = await testProcedure({
+        user: {
+          id: 1,
+          name: 'John Doe',
+          email: 'john@example.com',
+        },
+        preferences: {
+          theme: 'dark',
+          notifications: true,
+        },
+      });
+
+      expect(result.error).toBeNull();
+      const resultData = result.result as any;
+      expect(resultData?.success).toBe(true);
+      expect(resultData?.user.name).toBe('John Doe');
+      expect(resultData?.settings.theme).toBe('dark');
+    });
+  });
+
   describe('Extended Procedures', () => {
     it('should extend base procedures', () => {
       const extended = extendProcedure(procedure);
@@ -169,7 +316,8 @@ describe('Composable HTTP Client', () => {
 
       const result = await testAction({ name: 'John' });
       expect(result.error).toBeNull();
-      expect(result.result?.hasClient).toBe(true);
+      const resultData = result.result as any;
+      expect(resultData?.hasClient).toBe(true);
     });
   });
 });

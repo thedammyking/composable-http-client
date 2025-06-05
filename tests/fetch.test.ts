@@ -36,7 +36,7 @@ describe('Fetch HTTP Client', () => {
 
     server.use(
       http.post(`${baseURL}/users`, async ({ request }) => {
-        const body = await request.json();
+        const body = (await request.json()) as Record<string, unknown>;
         return HttpResponse.json({ id: 2, ...body });
       })
     );

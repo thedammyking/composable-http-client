@@ -2,36 +2,69 @@ import type { ZodType } from 'zod/v4';
 
 import type { Result, RetryDelay, OutputSchemaOrFn } from './base';
 
-export interface ProcedureBuilder<TCtx = unknown, TClient = unknown> {
-  input<TInput>(schema: ZodType<TInput>): ProcedureBuilder<TCtx, TClient>;
-  onStart(fn: () => void | Promise<void>): ProcedureBuilder<TCtx, TClient>;
-  onSuccess(fn: () => void | Promise<void>): ProcedureBuilder<TCtx, TClient>;
+// Utility type to extract Zod schema type
+type InferZodType<T> = T extends ZodType<infer U> ? U : never;
+
+// Enhanced ProcedureBuilder with proper type tracking
+export interface ProcedureBuilder<
+  TCtx = unknown,
+  TClient = unknown,
+  TInput = unknown,
+  TOutput = unknown,
+> {
+  input<TInputSchema extends ZodType>(
+    schema: TInputSchema
+  ): ProcedureBuilder<TCtx, TClient, InferZodType<TInputSchema>, TOutput>;
+
+  onStart(fn: () => void | Promise<void>): ProcedureBuilder<TCtx, TClient, TInput, TOutput>;
+
+  onSuccess(fn: () => void | Promise<void>): ProcedureBuilder<TCtx, TClient, TInput, TOutput>;
+
   retry(options?: {
     readonly retries?: number;
     readonly delay?: RetryDelay;
-  }): ProcedureBuilder<TCtx, TClient>;
-  handler<TInput, TOutput>(
-    fn: (params: TInput) => Promise<TOutput> | TOutput
-  ): ProcedureBuilder<TCtx, TClient>;
-  output<TInput, TOutput>(
-    schemaOrFn: OutputSchemaOrFn<TCtx, TInput, TOutput>
-  ): ProcedureBuilder<TCtx, TClient>;
-  transform<TInput, TOutput>(
-    fn: (output: TInput) => TOutput | Promise<TOutput>
-  ): ProcedureBuilder<TCtx, TClient>;
+  }): ProcedureBuilder<TCtx, TClient, TInput, TOutput>;
+
+  handler<THandlerOutput>(
+    fn: (params: {
+      readonly input: TInput;
+      readonly ctx: TCtx;
+      readonly client: TClient;
+    }) => Promise<THandlerOutput> | THandlerOutput
+  ): ProcedureBuilder<TCtx, TClient, TInput, THandlerOutput>;
+
+  output<TOutputSchema extends OutputSchemaOrFn<TCtx, TInput, unknown>>(
+    schemaOrFn: TOutputSchema
+  ): ProcedureBuilder<
+    TCtx,
+    TClient,
+    TInput,
+    TOutputSchema extends ZodType<infer U>
+      ? U
+      : TOutputSchema extends (ctx: TCtx, input: TInput) => ZodType<infer V>
+        ? V
+        : TOutput
+  >;
+
+  transform<TTransformOutput>(
+    fn: (output: TOutput) => TTransformOutput | Promise<TTransformOutput>
+  ): ProcedureBuilder<TCtx, TClient, TInput, TTransformOutput>;
+
   onComplete<TResult>(
     fn: (info: {
       readonly result: TResult | null;
       readonly error: Error | null;
       readonly duration: number;
     }) => void | Promise<void>
-  ): ProcedureBuilder<TCtx, TClient>;
-  catchAll<TResult>(fn: (err: Error) => TResult): CallableProcedure<TResult>;
+  ): ProcedureBuilder<TCtx, TClient, TInput, TOutput>;
+
+  catchAll<TResult>(fn: (err: Error) => TResult): CallableProcedure<TResult, TInput>;
+
   _getCtx(): TCtx;
   _getClient(): TClient;
 }
 
-export type CallableProcedure<TResult = unknown> = <TInput>(
+export type CallableProcedure<TResult = unknown, TInput = unknown> = (
   input: TInput
 ) => Promise<Result<TResult>>;
 

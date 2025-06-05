@@ -1,16 +1,16 @@
 import type { ProcedureBuilder } from './core';
 
-export interface ExtendedProcedureBuilder<TClient = unknown> {
-  handler(
-    ctxHandler: (args: { ctx: unknown; client: TClient }) => unknown
-  ): ExtendedProcedureBuilderWithHandler<TClient>;
+export interface ExtendedProcedureBuilder<TClient = unknown, TBaseCtx = unknown> {
+  handler<TNewCtx>(
+    ctxHandler: (args: { readonly ctx: TBaseCtx; readonly client: TClient }) => TNewCtx
+  ): ExtendedProcedureBuilderWithHandler<TClient, TNewCtx>;
 }
 
-export interface ExtendedProcedureBuilderWithHandler<TClient = unknown> {
-  (): ProcedureBuilder<unknown, TClient>;
-  catch(
-    creationErrorHandler: (err: Error) => unknown
-  ): ExtendedProcedureBuilderWithHandler<TClient>;
-  _getCtx(): unknown;
+export interface ExtendedProcedureBuilderWithHandler<TClient = unknown, TCtx = unknown> {
+  (): ProcedureBuilder<TCtx, TClient>;
+  catch<TNewCtx>(
+    creationErrorHandler: (err: Error) => TNewCtx
+  ): ExtendedProcedureBuilderWithHandler<TClient, TNewCtx>;
+  _getCtx(): TCtx;
   _getClient(): TClient;
 }

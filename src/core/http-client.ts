@@ -11,8 +11,8 @@ export function createHttpClientProcedure<TClient extends ClassicHttpClient>(
   const baseProcedureFactory = () => createProcedure<null, TClient>(null, client);
 
   const builder: HttpClientProcedureBuilder<TClient> = Object.assign(baseProcedureFactory, {
-    handler(ctxHandler: () => unknown): HttpClientProcedureBuilderWithHandler<TClient> {
-      let ctx: unknown;
+    handler<TCtx>(ctxHandler: () => TCtx): HttpClientProcedureBuilderWithHandler<TClient, TCtx> {
+      let ctx: TCtx;
       let creationError: Error | null = null;
 
       try {
@@ -21,35 +21,42 @@ export function createHttpClientProcedure<TClient extends ClassicHttpClient>(
         creationError = err instanceof Error ? err : new Error(String(err));
       }
 
-      const procedureFactory = () => createProcedure<unknown, TClient>(ctx, client);
+      const procedureFactory = () => createProcedure<TCtx, TClient>(ctx, client);
 
-      const withHandlerBuilder: HttpClientProcedureBuilderWithHandler<TClient> = Object.assign(
-        procedureFactory,
-        {
-          catch(
-            creationErrorHandler: (err: Error) => unknown
-          ): HttpClientProcedureBuilderWithHandler<TClient> {
+      const withHandlerBuilder: HttpClientProcedureBuilderWithHandler<TClient, TCtx> =
+        Object.assign(procedureFactory, {
+          catch<TNewCtx>(
+            creationErrorHandler: (err: Error) => TNewCtx
+          ): HttpClientProcedureBuilderWithHandler<TClient, TNewCtx> {
             if (creationError !== null && creationError !== undefined) {
               try {
-                ctx = creationErrorHandler(creationError);
+                const newCtx = creationErrorHandler(creationError);
+                const newProcedureFactory = () => createProcedure<TNewCtx, TClient>(newCtx, client);
+                return Object.assign(newProcedureFactory, {
+                  catch() {
+                    throw new Error('catch() can only be called once.');
+                  },
+                  _getCtx: () => newCtx,
+                  _getClient: () => client,
+                });
               } catch (catchError) {
                 throw catchError;
               }
             }
 
-            const newProcedureFactory = () => createProcedure<unknown, TClient>(ctx, client);
+            // If no creation error, return the original context
+            const newProcedureFactory = () => createProcedure<TCtx, TClient>(ctx, client);
             return Object.assign(newProcedureFactory, {
               catch() {
                 throw new Error('catch() can only be called once.');
               },
               _getCtx: () => ctx,
               _getClient: () => client,
-            });
+            }) as unknown as HttpClientProcedureBuilderWithHandler<TClient, TNewCtx>;
           },
           _getCtx: () => ctx,
           _getClient: () => client,
-        }
-      );
+        });
 
       if (creationError !== null && creationError !== undefined) {
         throw creationError;

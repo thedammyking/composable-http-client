@@ -20,11 +20,11 @@ export function createHttpClient<
   const instance: AxiosInstance = axios.create({ baseURL, timeout });
 
   if (interceptors?.request !== undefined && interceptors?.request !== null) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
     instance.interceptors.request.use(interceptors.request as any, interceptors.error);
   }
   if (interceptors?.response !== undefined && interceptors?.response !== null) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
     instance.interceptors.response.use(interceptors.response as any, interceptors.error);
   }
 

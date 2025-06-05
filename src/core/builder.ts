@@ -13,7 +13,7 @@ type MutableProcedureConfig = {
 export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
   ctx: TCtx,
   client: TClient
-): ProcedureBuilder<TCtx, TClient> {
+): ProcedureBuilder<TCtx, TClient, unknown, unknown> {
   // Use a mutable config during construction, then cast to readonly for final use
   const config: MutableProcedureConfig = {
     retryOptions: { retries: 1, delay: 100 },
@@ -21,13 +21,14 @@ export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
     client,
   };
 
-  const builder: ProcedureBuilder<TCtx, TClient> = {
-    input(schema: ZodType) {
+  const builder: ProcedureBuilder<TCtx, TClient, unknown, unknown> = {
+    input<TInputSchema extends ZodType>(schema: TInputSchema) {
       if (config.inputSchema !== undefined && config.inputSchema !== null) {
         throw new Error('input() can only be called once.');
       }
       config.inputSchema = schema;
-      return builder;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+      return builder as any;
     },
 
     onStart(fn: () => void | Promise<void>) {
@@ -51,7 +52,13 @@ export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
       return builder;
     },
 
-    handler<TInput, TOutput>(fn: (params: TInput) => Promise<TOutput> | TOutput) {
+    handler<THandlerOutput>(
+      fn: (params: {
+        readonly input: unknown;
+        readonly ctx: TCtx;
+        readonly client: TClient;
+      }) => Promise<THandlerOutput> | THandlerOutput
+    ) {
       if (config.mainHandler !== undefined && config.mainHandler !== null) {
         throw new Error('handler() can only be called once.');
       }
@@ -60,23 +67,30 @@ export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
         ctx: unknown;
         client: unknown;
       }) => Promise<unknown>;
-      return builder;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+      return builder as any;
     },
 
-    output<TInput, TOutput>(schemaOrFn: OutputSchemaOrFn<TCtx, TInput, TOutput>) {
+    output<TOutputSchema extends OutputSchemaOrFn<TCtx, unknown, unknown>>(
+      schemaOrFn: TOutputSchema
+    ) {
       if (config.outputSchemaOrFn !== undefined && config.outputSchemaOrFn !== null) {
         throw new Error('output() can only be called once.');
       }
       config.outputSchemaOrFn = schemaOrFn as OutputSchemaOrFn<unknown, unknown, unknown>;
-      return builder;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+      return builder as any;
     },
 
-    transform<TInput, TOutput>(fn: (output: TInput) => Promise<TOutput>) {
+    transform<TTransformOutput>(
+      fn: (output: unknown) => TTransformOutput | Promise<TTransformOutput>
+    ) {
       if (config.transformFn !== undefined && config.transformFn !== null) {
         throw new Error('transform() can only be called once.');
       }
       config.transformFn = fn as (output: unknown) => Promise<unknown>;
-      return builder;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+      return builder as any;
     },
 
     onComplete<TResult>(
@@ -104,7 +118,8 @@ export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
         throw new Error('catchAll() can only be called once.');
       }
       config.catchAllFn = fn as (err: Error) => unknown;
-      return createCallableProcedure<TResult>(config as ProcedureConfig);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+      return createCallableProcedure<TResult>(config as ProcedureConfig) as any;
     },
 
     _getCtx: () => ctx,
