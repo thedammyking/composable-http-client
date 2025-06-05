@@ -490,8 +490,6 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 ```
 
-**[▶️ Complete testing examples on StackBlitz](https://stackblitz.com/edit/composable-http-client-testing)**
-
 ## Troubleshooting
 
 ### Common Issues
@@ -627,8 +625,6 @@ const createOrder = procedure()
     recoverable: error.status !== 400,
   }));
 ```
-
-**[▶️ More examples on StackBlitz](https://stackblitz.com/edit/composable-http-client-examples)**
 
 ## Framework Integration
 
