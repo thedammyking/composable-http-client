@@ -34,12 +34,15 @@ export function createHttpClient<
       if (addTracing)
         await addTracing({ method: config.method ?? 'get', url: config.url ?? '', config });
       const tokens = getTokens ? getTokens() : ({} as Tokens);
-      config.headers = { ...resolveHeaders(headers, tokens), ...config.headers };
+      const newHeaders = resolveHeaders(headers, tokens);
+      config.headers = { ...config.headers, ...newHeaders };
       const res: AxiosResponse<T> = await instance.request<T>(config);
       return res.data;
     } catch (error: any) {
       if (logError) await logError(error);
-      if (error.response?.status === 401 && refreshToken && !retry) {
+      // Check both error.response.status and error.status for 401
+      const is401 = error.response?.status === 401 || error.status === 401;
+      if (is401 && refreshToken && !retry) {
         await refreshToken();
         return coreRequest<T>(config, true);
       }

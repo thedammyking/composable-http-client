@@ -41,8 +41,8 @@ describe('Composable HTTP Client', () => {
 
       const testProcedure = procedure()
         .input(inputSchema)
-        .handler(async ({ name, age }: { name: string; age: number }) => {
-          return { greeting: `Hello ${name}, you are ${age} years old` };
+        .handler(async ({ input }) => {
+          return { greeting: `Hello ${input.name}, you are ${input.age} years old` };
         })
         .catchAll(err => ({ error: err.message }));
 

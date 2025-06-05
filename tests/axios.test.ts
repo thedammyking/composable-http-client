@@ -36,7 +36,7 @@ describe('Axios HTTP Client', () => {
 
     server.use(
       http.post(`${baseURL}/users`, async ({ request }) => {
-        const body = await request.json();
+        const body = ((await request.json()) ?? {}) as Record<string, unknown>;
         return HttpResponse.json({ id: 2, ...body });
       })
     );
@@ -67,6 +67,7 @@ describe('Axios HTTP Client', () => {
 
   it('should handle token refresh on 401', async () => {
     let tokenRefreshed = false;
+    let requestCount = 0;
     const getTokens = () => ({ token: tokenRefreshed ? 'new-token' : 'old-token' });
     const refreshToken = async () => {
       tokenRefreshed = true;
@@ -81,16 +82,27 @@ describe('Axios HTTP Client', () => {
 
     server.use(
       http.get(`${baseURL}/auth-test`, ({ request }) => {
+        requestCount++;
         const auth = request.headers.get('Authorization');
-        if (auth === 'Bearer new-token') {
+
+        // First request with old token should fail
+        if (requestCount === 1 && auth === 'Bearer old-token') {
+          return new HttpResponse(null, { status: 401 });
+        }
+
+        // Second request with new token should succeed
+        if (requestCount === 2 && auth === 'Bearer new-token') {
           return HttpResponse.json({ message: 'Success with new token' });
         }
+
+        // Any other scenario should fail
         return new HttpResponse(null, { status: 401 });
       })
     );
 
     const response = await clientWithAuth.get('/auth-test');
     expect(tokenRefreshed).toBe(true);
+    expect(requestCount).toBe(2);
     expect(response).toEqual({ message: 'Success with new token' });
   });
 
