@@ -212,9 +212,9 @@ async function demonstrateTypeSafety() {
 
   // The result is also fully typed
   if (result.error === null) {
-    // TypeScript knows result.result has the transformed output type
+    // TypeScript knows result.data has the transformed output type
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-    const resultData = result.result as any;
+    const resultData = result.data as any;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     console.log('User created:', resultData?.user.name);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

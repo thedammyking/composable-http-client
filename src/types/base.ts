@@ -30,9 +30,9 @@ export type FetchLike = typeof fetch;
 
 export type RetryDelay = number | ((currentAttempt: number, err: Error) => number);
 
-export interface Result<T> {
-  readonly data: T | null;
-  readonly error: Error | null;
+export interface Result<TData, TError = Error> {
+  readonly data: TData | null;
+  readonly error: TError | null;
 }
 
 export type OutputSchemaOrFn<TCtx, TInput, TOutput> =

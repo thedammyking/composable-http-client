@@ -5,12 +5,12 @@ import { retry } from '../utils/retry';
 import { validateConfig, executeLifecycleHook } from '../utils/validation';
 import { processInput, processOutput } from '../utils/processors';
 
-export function createCallableProcedure<TResult = unknown>(
+export function createCallableProcedure<TData = unknown, TError = Error>(
   config: ProcedureConfig
-): CallableProcedure<TResult> {
+): CallableProcedure<TData, TError> {
   validateConfig(config);
 
-  const callable = async (input: unknown): Promise<Result<unknown>> => {
+  const callable = async (input: unknown): Promise<Result<TData, TError>> => {
     let parsedInput: unknown = input;
     let output: unknown;
     let error: Error | null = null;
@@ -50,7 +50,7 @@ export function createCallableProcedure<TResult = unknown>(
         });
       }
 
-      return { data: output, error: null };
+      return { data: output as TData, error: null };
     } catch (e) {
       error = e as Error;
 
@@ -72,9 +72,9 @@ export function createCallableProcedure<TResult = unknown>(
         config.catchAllFn !== undefined && config.catchAllFn !== null
           ? config.catchAllFn(error)
           : error;
-      return { data: null, error: finalError as Error | null };
+      return { data: null, error: finalError as TError };
     }
   };
 
-  return callable as CallableProcedure<TResult>;
+  return callable as CallableProcedure<TData, TError>;
 }

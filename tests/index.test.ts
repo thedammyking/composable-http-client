@@ -211,7 +211,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testProcedure({ userId: 789, action: 'create' });
       expect(result.error).toBeNull();
-      const resultData = result.data as any;
+      const resultData = result.data;
       expect(resultData?.apiKey).toBe('secret123');
       expect(resultData?.version).toBe('1.0');
       expect(resultData?.sessionId).toBe('sess_456');
@@ -282,7 +282,7 @@ describe('Composable HTTP Client', () => {
       });
 
       expect(result.error).toBeNull();
-      const resultData = result.data as any;
+      const resultData = result.data;
       expect(resultData?.success).toBe(true);
       expect(resultData?.user.name).toBe('John Doe');
       expect(resultData?.settings.theme).toBe('dark');
@@ -320,7 +320,7 @@ describe('Composable HTTP Client', () => {
 
       const result = await testAction({ name: 'John' });
       expect(result.error).toBeNull();
-      const resultData = result.data as any;
+      const resultData = result.data;
       expect(resultData?.hasClient).toBe(true);
     });
   });
