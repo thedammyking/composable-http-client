@@ -33,6 +33,7 @@ Whether you're building with React, Vue, Svelte, or vanilla JavaScript, working 
 - 🎣 **Lifecycle Hooks**: onStart, onSuccess, onComplete hooks
 - 🔧 **Middleware Support**: Transform responses and handle errors
 - 🌐 **Framework Agnostic**: Works in Node.js (18+) and all modern browsers
+- 🪶 **Tiny Bundle**: Only ~2.8KB gzipped - perfect for performance-conscious applications
 - 📦 **Multiple Formats**: Supports both CJS and ESM for maximum compatibility
 
 ## Installation
@@ -1244,32 +1245,20 @@ function UserProfile({ userId }: { userId: string }) {
 
 ## Comparison with Other Solutions
 
-### vs Axios
-
-| Feature               | Composable HTTP Client   | Axios                |
-| --------------------- | ------------------------ | -------------------- |
-| **Type Safety**       | ✅ End-to-end with Zod   | ❌ Manual typing     |
-| **Input Validation**  | ✅ Built-in with schemas | ❌ Manual validation |
-| **Output Validation** | ✅ Runtime validation    | ❌ No validation     |
-| **Retry Logic**       | ✅ Built-in configurable | 🔧 Plugin required   |
-| **Composability**     | ✅ Procedure builders    | ❌ Not composable    |
-| **Error Handling**    | ✅ Structured & typed    | 🔧 Manual setup      |
-| **Bundle Size**       | 📦 ~15KB (with Zod)      | 📦 ~13KB             |
-| **Browser Support**   | ✅ Modern browsers       | ✅ IE11+             |
-| **Node.js Support**   | ✅ 18+                   | ✅ All versions      |
-
-### vs Native Fetch
-
-| Feature                             | Composable HTTP Client | Native Fetch             |
-| ----------------------------------- | ---------------------- | ------------------------ |
-| **Type Safety**                     | ✅ Full type safety    | ❌ No typing             |
-| **Request/Response Transformation** | ✅ Built-in            | 🔧 Manual                |
-| **Retry Logic**                     | ✅ Configurable        | ❌ Manual implementation |
-| **Error Handling**                  | ✅ Structured          | 🔧 Manual try/catch      |
-| **Input Validation**                | ✅ Schema-based        | ❌ None                  |
-| **Interceptors**                    | ✅ Via lifecycle hooks | ❌ None                  |
-| **Bundle Size**                     | 📦 ~15KB               | ✅ 0KB (native)          |
-| **Learning Curve**                  | 📚 Medium              | 📚 Low                   |
+| Feature                             | Composable HTTP Client            | Axios                   | Native Fetch             |
+| ----------------------------------- | --------------------------------- | ----------------------- | ------------------------ |
+| **Type Safety**                     | ✅ End-to-end with Zod            | ❌ Manual typing        | ❌ No typing             |
+| **Input Validation**                | ✅ Built-in with schemas          | ❌ Manual validation    | ❌ None                  |
+| **Output Validation**               | ✅ Runtime validation             | ❌ No validation        | ❌ No validation         |
+| **Retry Logic**                     | ✅ Built-in configurable          | 🔧 Plugin required      | ❌ Manual implementation |
+| **Composability**                   | ✅ Procedure builders             | ❌ Not composable       | ❌ Not composable        |
+| **Error Handling**                  | ✅ Structured & typed             | 🔧 Manual setup         | 🔧 Manual try/catch      |
+| **Request/Response Transformation** | ✅ Built-in                       | ✅ Interceptors         | 🔧 Manual                |
+| **Lifecycle Hooks**                 | ✅ onStart, onSuccess, onComplete | ❌ None                 | ❌ None                  |
+| **Interceptors**                    | ❌ None (has lifecycle hooks)     | ✅ Full interceptor API | ❌ None                  |
+| **Browser Support**                 | ✅ Modern browsers                | ✅ IE11+                | ✅ Modern browsers       |
+| **Node.js Support**                 | ✅ 18+                            | ✅ All versions         | ✅ 18+ (native)          |
+| **Learning Curve**                  | 📚 Medium                         | 📚 Low                  | 📚 Low                   |
 
 ## Migration Guides
 
@@ -1463,8 +1452,8 @@ const getUser = procedure()
 
 A:
 
-- **Fetch adapter**: Use for modern environments (Node.js 18+, modern browsers) when you want smaller bundle size
-- **Axios adapter**: Use for maximum compatibility, better error handling, and when you need request/response interceptors
+- **Fetch adapter**: Use for modern environments (Node.js 18+, modern browsers) when you want the smallest bundle size
+- **Axios adapter**: Use for maximum compatibility, better error handling, and when you need advanced HTTP features
 
 **Q: Can I use multiple HTTP clients in the same application?**
 
@@ -1497,6 +1486,27 @@ A: Yes, use `extendProcedure`:
 ```typescript
 const baseProcedure = createHttpClientProcedure(client);
 const authProcedure = extendProcedure(baseProcedure).handler(() => ({ user: getCurrentUser() }));
+```
+
+**Q: What's the difference between lifecycle hooks and interceptors?**
+
+A: Lifecycle hooks are procedure-level callbacks that run at specific points in the procedure execution:
+
+- **Lifecycle hooks**: Procedure-specific, run for that specific procedure call
+- **Interceptors**: Client-level, run for all requests through that HTTP client
+
+```typescript
+// Lifecycle hooks (procedure-level)
+const getUser = procedure()
+  .onStart(() => console.log('This procedure started'))
+  .handler(({ client }) => client.get('/users/1'))
+  .onSuccess(() => console.log('This procedure succeeded'));
+
+// For interceptor-like behavior, use the underlying HTTP client's capabilities
+const client = createHttpClient({
+  // This runs for ALL requests through this client
+  logError: async error => console.log('Global error:', error),
+});
 ```
 
 ### Error Handling
@@ -1557,10 +1567,10 @@ const cache = new Map();
 
 A:
 
-- Core library: ~8KB gzipped
-- With Zod: ~15KB gzipped total
-- Axios adapter: +13KB
-- Fetch adapter: +2KB
+- Core library: ~2.8KB gzipped
+- With Zod: ~12KB gzipped total (Zod adds ~9KB)
+- Axios adapter: +0.6KB gzipped
+- Fetch adapter: +0.8KB gzipped
 
 ### Testing
 
