@@ -4,42 +4,64 @@ import type {
   ExtendedProcedureBuilderWithHandler,
 } from '../types/extend';
 import { createProcedureBuilder as createProcedure } from './builder';
+import {
+  INTERNAL_GET_CTX,
+  INTERNAL_GET_CLIENT,
+  hasInternalAccess,
+  addInternalAccess,
+} from './internal-symbols';
+
+// Extract context and client types from BaseProcedure
+type ExtractCtx<T> = T extends BaseProcedure<infer TCtx, unknown> ? TCtx : unknown;
+type ExtractClient<T> = T extends BaseProcedure<unknown, infer TClient> ? TClient : unknown;
 
 export function extendProcedure<TBaseProcedure extends BaseProcedure>(
   baseProcedure: TBaseProcedure
-): ExtendedProcedureBuilder<
-  ReturnType<TBaseProcedure['_getClient']>,
-  ReturnType<TBaseProcedure['_getCtx']>
-> {
+): ExtendedProcedureBuilder<ExtractClient<TBaseProcedure>, ExtractCtx<TBaseProcedure>> {
   return {
     handler<TNewCtx>(
       ctxHandler: (args: {
-        readonly ctx: ReturnType<TBaseProcedure['_getCtx']>;
-        readonly client: ReturnType<TBaseProcedure['_getClient']>;
+        readonly ctx: ExtractCtx<TBaseProcedure>;
+        readonly client: ExtractClient<TBaseProcedure>;
       }) => TNewCtx
-    ): ExtendedProcedureBuilderWithHandler<ReturnType<TBaseProcedure['_getClient']>, TNewCtx> {
-      let ctx: TNewCtx;
+    ): ExtendedProcedureBuilderWithHandler<ExtractClient<TBaseProcedure>, TNewCtx> {
+      // Get the base procedure instance to access internal methods
+      const baseProcedureInstance = baseProcedure();
+
+      if (
+        !hasInternalAccess<ExtractCtx<TBaseProcedure>, ExtractClient<TBaseProcedure>>(
+          baseProcedureInstance
+        )
+      ) {
+        throw new Error('Base procedure does not support internal access');
+      }
+
+      let ctx: TNewCtx | undefined;
       let creationError: Error | null = null;
 
       try {
         ctx = ctxHandler({
-          ctx: baseProcedure._getCtx() as ReturnType<TBaseProcedure['_getCtx']>,
-          client: baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>,
+          ctx: baseProcedureInstance[INTERNAL_GET_CTX](),
+          client: baseProcedureInstance[INTERNAL_GET_CLIENT](),
         });
       } catch (err) {
         creationError = err instanceof Error ? err : new Error(String(err));
       }
 
-      const procedureFactory = () =>
-        createProcedure<TNewCtx, ReturnType<TBaseProcedure['_getClient']>>(
+      const procedureFactory = () => {
+        if (ctx === undefined) {
+          throw new Error('Context was not properly initialized');
+        }
+        return createProcedure<TNewCtx, ExtractClient<TBaseProcedure>>(
           ctx,
-          baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>
+          baseProcedureInstance[INTERNAL_GET_CLIENT]()
         );
+      };
 
       const withHandlerBuilder = Object.assign(procedureFactory, {
         catch(
           creationErrorHandler: (err: Error) => void
-        ): ExtendedProcedureBuilderWithHandler<ReturnType<TBaseProcedure['_getClient']>, TNewCtx> {
+        ): ExtendedProcedureBuilderWithHandler<ExtractClient<TBaseProcedure>, TNewCtx> {
           if (creationError !== null && creationError !== undefined) {
             try {
               creationErrorHandler(creationError);
@@ -51,29 +73,51 @@ export function extendProcedure<TBaseProcedure extends BaseProcedure>(
           }
 
           // If no creation error, return the original context
-          const newProcedureFactory = () =>
-            createProcedure<TNewCtx, ReturnType<TBaseProcedure['_getClient']>>(
+          const newProcedureFactory = () => {
+            if (ctx === undefined) {
+              throw new Error('Context was not properly initialized');
+            }
+            return createProcedure<TNewCtx, ExtractClient<TBaseProcedure>>(
               ctx,
-              baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>
+              baseProcedureInstance[INTERNAL_GET_CLIENT]()
             );
-          return Object.assign(newProcedureFactory, {
+          };
+
+          const resultBuilderBase = Object.assign(newProcedureFactory, {
             catch() {
               throw new Error('catch() can only be called once.');
             },
-            _getCtx: () => ctx,
-            _getClient: () =>
-              baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>,
           });
+
+          // Add symbol-based internal access using type-safe helper
+          if (ctx === undefined) {
+            throw new Error('Context was not properly initialized');
+          }
+          const resultBuilder = addInternalAccess(
+            resultBuilderBase,
+            ctx,
+            baseProcedureInstance[INTERNAL_GET_CLIENT]()
+          );
+
+          return resultBuilder;
         },
-        _getCtx: () => ctx,
-        _getClient: () => baseProcedure._getClient() as ReturnType<TBaseProcedure['_getClient']>,
       });
+
+      // Add symbol-based internal access to the main builder using type-safe helper
+      if (ctx === undefined) {
+        throw new Error('Context was not properly initialized');
+      }
+      const typedBuilder = addInternalAccess(
+        withHandlerBuilder,
+        ctx,
+        baseProcedureInstance[INTERNAL_GET_CLIENT]()
+      );
 
       if (creationError !== null && creationError !== undefined) {
         throw creationError;
       }
 
-      return withHandlerBuilder;
+      return typedBuilder;
     },
   };
 }

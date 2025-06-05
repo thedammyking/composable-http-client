@@ -11,6 +11,4 @@ export interface ExtendedProcedureBuilderWithHandler<TClient = unknown, TCtx = u
   catch(
     creationErrorHandler: (err: Error) => void
   ): ExtendedProcedureBuilderWithHandler<TClient, TCtx>;
-  _getCtx(): TCtx;
-  _getClient(): TClient;
 }

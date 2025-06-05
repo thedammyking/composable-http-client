@@ -4,6 +4,7 @@ import type {
   HttpClientProcedureBuilderWithHandler,
 } from '../types/http-client';
 import { createProcedureBuilder as createProcedure } from './builder';
+import { addInternalAccess } from './internal-symbols';
 
 export function createHttpClientProcedure<TClient extends ClassicHttpClient>(
   client: TClient
@@ -19,6 +20,8 @@ export function createHttpClientProcedure<TClient extends ClassicHttpClient>(
         ctx = ctxHandler();
       } catch (err) {
         creationError = err instanceof Error ? err : new Error(String(err));
+        // Initialize ctx to a placeholder value that will cause an error if used
+        ctx = undefined as never;
       }
 
       const procedureFactory = () => createProcedure<TCtx, TClient>(ctx, client);
@@ -40,27 +43,32 @@ export function createHttpClientProcedure<TClient extends ClassicHttpClient>(
 
             // If no creation error, return the original context
             const newProcedureFactory = () => createProcedure<TCtx, TClient>(ctx, client);
-            return Object.assign(newProcedureFactory, {
+            const resultBuilder = Object.assign(newProcedureFactory, {
               catch() {
                 throw new Error('catch() can only be called once.');
               },
-              _getCtx: () => ctx,
-              _getClient: () => client,
             });
+
+            // Add symbol-based internal access using type-safe helper
+            const typedResultBuilder = addInternalAccess(resultBuilder, ctx, client);
+
+            return typedResultBuilder;
           },
-          _getCtx: () => ctx,
-          _getClient: () => client,
         });
+
+      // Add symbol-based internal access using type-safe helper
+      const typedWithHandlerBuilder = addInternalAccess(withHandlerBuilder, ctx, client);
 
       if (creationError !== null && creationError !== undefined) {
         throw creationError;
       }
 
-      return withHandlerBuilder;
+      return typedWithHandlerBuilder;
     },
-    _getCtx: () => null,
-    _getClient: () => client,
   });
 
-  return builder;
+  // Add symbol-based internal access to the base builder using type-safe helper
+  const typedBuilder = addInternalAccess(builder, null, client);
+
+  return typedBuilder;
 }

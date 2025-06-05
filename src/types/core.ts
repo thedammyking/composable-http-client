@@ -62,17 +62,13 @@ export interface ProcedureBuilder<
 
   // Make the builder callable without catchAll
   (input: TInput): Promise<Result<TOutput, Error>>;
-
-  _getCtx(): TCtx;
-  _getClient(): TClient;
 }
 
 export type CallableProcedure<TData = unknown, TError = Error, TInput = unknown> = (
   input: TInput
 ) => Promise<Result<TData, TError>>;
 
-export interface BaseProcedure<TCtx = unknown, TClient = unknown> {
-  (): ProcedureBuilder<TCtx, TClient>;
-  _getCtx(): TCtx;
-  _getClient(): TClient;
-}
+export type BaseProcedure<TCtx = unknown, TClient = unknown> = () => ProcedureBuilder<
+  TCtx,
+  TClient
+>;
