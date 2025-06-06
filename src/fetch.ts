@@ -1,10 +1,11 @@
 import type { ClassicHttpClient, CoreClientParams, FetchLike, RequestConfig } from './types';
+import { HttpError, TimeoutError, NetworkError, TokenRefreshError } from './errors';
 import { buildClassicHttpClient, buildUrl, resolveHeaders } from './utils';
 
 function withTimeout<T>(promise: Promise<T>, timeout: number): Promise<T> {
   if (timeout === 0 || timeout === null || timeout === undefined) return promise; // 0 or falsy means unlimited, no timer
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Request timeout')), timeout);
+    const timer = setTimeout(() => reject(new TimeoutError(timeout)), timeout);
     promise
       .then(res => {
         clearTimeout(timer);
@@ -15,6 +16,18 @@ function withTimeout<T>(promise: Promise<T>, timeout: number): Promise<T> {
         reject(err);
       });
   });
+}
+
+// Type guard for fetch errors
+function isFetchError(error: unknown): error is { response?: { status?: number } } {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'response' in error &&
+    error.response !== null &&
+    typeof error.response === 'object' &&
+    'status' in error.response
+  );
 }
 
 function createFetchCoreRequest<
@@ -61,27 +74,40 @@ function createFetchCoreRequest<
           body = await res.text();
         }
         if (!res.ok) {
-          const error = new Error('Request failed');
-          (error as { response?: { status: number; data: unknown } }).response = {
-            status: res.status,
-            data: body,
-          };
-          throw error;
+          const headersObj: Record<string, string> = {};
+          res.headers.forEach((value, key) => {
+            headersObj[key] = value;
+          });
+          throw new HttpError('Request failed', res.status, body, headersObj);
         }
+        // Note: This cast is unavoidable as we cannot validate response shape at runtime
+        // without a schema. Consider using .output() with zod validation in procedures.
         return body as T;
       });
       return await withTimeout<T>(fetchPromise, config.timeout ?? timeout);
     } catch (error: unknown) {
       if (logError !== undefined && logError !== null) await logError(error);
-      const errorWithResponse = error as { response?: { status?: number } };
-      if (
-        errorWithResponse.response?.status === 401 &&
-        refreshToken !== undefined &&
-        refreshToken !== null &&
-        !retry
-      ) {
-        await refreshToken();
-        return coreRequest<T>(config, true);
+
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new NetworkError('Network request failed', error);
+      }
+
+      // Type-safe error handling using type guard
+      if (isFetchError(error)) {
+        if (
+          error.response?.status === 401 &&
+          refreshToken !== undefined &&
+          refreshToken !== null &&
+          !retry
+        ) {
+          try {
+            await refreshToken();
+            return coreRequest<T>(config, true);
+          } catch (refreshError) {
+            throw new TokenRefreshError('Token refresh failed', refreshError as Error);
+          }
+        }
       }
       throw error;
     }

@@ -4,6 +4,7 @@ import type { CallableProcedure } from '../types/core';
 import { retry } from '../utils/retry';
 import { validateConfig, executeLifecycleHook } from '../utils/validation';
 import { processInput, processOutput } from '../utils/processors';
+import { ConfigurationError } from '../errors';
 
 export function createCallableProcedure<TData = unknown, TError = Error>(
   config: ProcedureConfig
@@ -20,7 +21,7 @@ export function createCallableProcedure<TData = unknown, TError = Error>(
       parsedInput = await processInput(input, config.inputSchema);
 
       if (config.mainHandler === undefined || config.mainHandler === null) {
-        throw new Error('Main handler is not defined');
+        throw new ConfigurationError('Main handler is not defined', 'mainHandler');
       }
 
       output = await retry(
@@ -32,11 +33,12 @@ export function createCallableProcedure<TData = unknown, TError = Error>(
           }),
         config.retryOptions
       );
-      output = await processOutput(output, config.outputSchemaOrFn, config.ctx, parsedInput);
 
       if (config.transformFn !== undefined && config.transformFn !== null) {
         output = await config.transformFn(output);
       }
+
+      output = await processOutput(output, config.outputSchemaOrFn, config.ctx, parsedInput);
 
       await executeLifecycleHook(config.onSuccessFn, 'onSuccess');
 
