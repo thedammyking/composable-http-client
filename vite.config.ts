@@ -21,7 +21,6 @@ export default defineConfig({
         index: resolve(__dirname, 'src/index.ts'),
         axios: resolve(__dirname, 'src/axios.ts'),
         fetch: resolve(__dirname, 'src/fetch.ts'),
-        errors: resolve(__dirname, 'src/errors/index.ts'),
       },
       formats: ['es', 'cjs'],
       fileName: (format, entryName) => {

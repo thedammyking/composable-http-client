@@ -88,7 +88,9 @@ export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
       return builder as any;
     },
 
-    transform<TResponse = unknown>(fn: (response: TResponse) => unknown) {
+    transform<TTransformOutput>(
+      fn: (output: unknown) => TTransformOutput | Promise<TTransformOutput>
+    ) {
       if (config.transformFn !== undefined && config.transformFn !== null) {
         throw new Error('transform() can only be called once.');
       }

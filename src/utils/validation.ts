@@ -1,11 +1,9 @@
 import type { ProcedureConfig } from '../types/config';
-import { ConfigurationError } from '../errors';
 
 export function validateConfig(config: ProcedureConfig): void {
   if (config.mainHandler === undefined || config.mainHandler === null) {
-    throw new ConfigurationError(
-      'Main handler is required. Call .handler() before making the procedure callable.',
-      'mainHandler'
+    throw new Error(
+      'Main handler is required. Call .handler() before making the procedure callable.'
     );
   }
 }

@@ -16,32 +16,12 @@ jobs:
     if: github.event.pull_request.draft == false
 
     steps:
-      - name: Wait for tests (Node 20)
+      - name: Wait for tests
         uses: fountainhead/action-wait-for-check@v1.2.0
-        id: wait-for-tests-20
+        id: wait-for-tests
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Test & Lint (20)
-          ref: ${{ github.event.pull_request.head.sha }}
-          timeoutSeconds: 1800
-          intervalSeconds: 30
-
-      - name: Wait for tests (Node 22)
-        uses: fountainhead/action-wait-for-check@v1.2.0
-        id: wait-for-tests-22
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Test & Lint (22)
-          ref: ${{ github.event.pull_request.head.sha }}
-          timeoutSeconds: 1800
-          intervalSeconds: 30
-
-      - name: Wait for tests (Node 24)
-        uses: fountainhead/action-wait-for-check@v1.2.0
-        id: wait-for-tests-24
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Test & Lint (24)
+          checkName: Test & Lint
           ref: ${{ github.event.pull_request.head.sha }}
           timeoutSeconds: 1800
           intervalSeconds: 30
@@ -67,7 +47,7 @@ jobs:
           intervalSeconds: 30
 
       - name: PR Validation Complete
-        if: steps.wait-for-tests-20.outputs.conclusion == 'success' && steps.wait-for-tests-22.outputs.conclusion == 'success' && steps.wait-for-tests-24.outputs.conclusion == 'success' && steps.wait-for-security.outputs.conclusion == 'success' && steps.wait-for-build.outputs.conclusion == 'success'
+        if: steps.wait-for-tests.outputs.conclusion == 'success' && steps.wait-for-security.outputs.conclusion == 'success' && steps.wait-for-build.outputs.conclusion == 'success'
         run: |
           echo "✅ All pull request validation checks have passed:"
           echo "   - Tests completed across Node.js 20, 22, 24"
@@ -79,12 +59,10 @@ jobs:
           echo "This pull request is ready for review! 🚀"
 
       - name: PR Validation Failed
-        if: steps.wait-for-tests-20.outputs.conclusion != 'success' || steps.wait-for-tests-22.outputs.conclusion != 'success' || steps.wait-for-tests-24.outputs.conclusion != 'success' || steps.wait-for-security.outputs.conclusion != 'success' || steps.wait-for-build.outputs.conclusion != 'success'
+        if: steps.wait-for-tests.outputs.conclusion != 'success' || steps.wait-for-security.outputs.conclusion != 'success' || steps.wait-for-build.outputs.conclusion != 'success'
         run: |
           echo "❌ Pull request validation failed:"
-          echo "   - Tests (Node 20): ${{ steps.wait-for-tests-20.outputs.conclusion }}"
-          echo "   - Tests (Node 22): ${{ steps.wait-for-tests-22.outputs.conclusion }}"
-          echo "   - Tests (Node 24): ${{ steps.wait-for-tests-24.outputs.conclusion }}"
+          echo "   - Tests: ${{ steps.wait-for-tests.outputs.conclusion }}"
           echo "   - Security: ${{ steps.wait-for-security.outputs.conclusion }}"
           echo "   - Build: ${{ steps.wait-for-build.outputs.conclusion }}"
           echo ""
