@@ -32,9 +32,8 @@ Whether you're building with React, Vue, Svelte, or vanilla JavaScript, working 
 - 🧪 **Dual HTTP Support**: Works with both Axios and native Fetch
 - 🎣 **Lifecycle Hooks**: onStart, onSuccess, onComplete hooks
 - 🔧 **Transform & Hooks**: Transform responses and handle errors with lifecycle hooks
-- ⚡ **Rich Error Handling**: Specialized error classes with type guards for precise error handling
 - 🌐 **Framework Agnostic**: Works in Node.js (20+) and all modern browsers
-- 🪶 **Tiny Bundle**: Only ~3.2KB gzipped - perfect for performance-conscious applications
+- 🪶 **Tiny Bundle**: Only ~2.8KB gzipped - perfect for performance-conscious applications
 - 📦 **Multiple Formats**: Supports both CJS and ESM for maximum compatibility
 
 ## Installation
@@ -52,15 +51,6 @@ yarn add composable-http-client zod
 
 > **Note**: Zod is a dependency required for schema validation. While you can skip using `.input()` and `.output()` methods, Zod will still be included in your bundle.
 
-### 📦 **Modular Entry Points**
-
-The library provides four tree-shakable entry points:
-
-- `composable-http-client` - Core functionality (procedures, builders)
-- `composable-http-client/axios` - Axios HTTP client adapter
-- `composable-http-client/fetch` - Fetch HTTP client adapter
-- `composable-http-client/errors` - Error classes and type guards (optional)
-
 ## Quick Start
 
 ### Basic Usage with Axios
@@ -68,7 +58,6 @@ The library provides four tree-shakable entry points:
 ```typescript
 import { createHttpClientProcedure } from 'composable-http-client';
 import { createHttpClient } from 'composable-http-client/axios';
-import { isHttpError } from 'composable-http-client/errors';
 import { z } from 'zod';
 
 // 1. Create HTTP client
@@ -97,12 +86,7 @@ const getUser = procedure()
   })
   .output(userSchema)
   .onSuccess(() => console.log('User fetched successfully'))
-  .catchAll(error => {
-    if (isHttpError(error) && error.hasStatus(404)) {
-      return { error: 'User not found' };
-    }
-    return { error: error.message };
-  });
+  .catchAll(error => ({ error: error.message }));
 
 // 4. Use the procedure
 const result = await getUser({ userId: 123 });
@@ -170,9 +154,6 @@ import { createHttpClient } from 'composable-http-client/fetch';
 
 // The core procedure builder works with any HTTP client
 import { createHttpClientProcedure } from 'composable-http-client';
-
-// Import error classes for type-safe error handling (tree-shakable)
-import { HttpError, isHttpError } from 'composable-http-client/errors';
 ```
 
 ## 🌐 Supported Backend Types
@@ -431,272 +412,6 @@ const uploadFile = procedure()
     })
   )
   .catchAll(error => ({ error: error.message }));
-```
-
-## Error Handling
-
-### Import Error Classes
-
-```typescript
-import {
-  HttpError,
-  TimeoutError,
-  ValidationError,
-  RetryError,
-  TokenRefreshError,
-  NetworkError,
-  ConfigurationError,
-  isHttpError,
-  isTimeoutError,
-  isValidationError,
-  isRetryError,
-  isTokenRefreshError,
-  isNetworkError,
-  isConfigurationError,
-  type ComposableHttpErrorType,
-} from 'composable-http-client/errors';
-```
-
-### Error Types
-
-This library provides specialized error classes for different failure scenarios:
-
-#### **HttpError**
-
-Thrown when HTTP requests fail with specific status codes.
-
-```typescript
-const getUserProcedure = procedure()
-  .input(z.object({ userId: z.number() }))
-  .handler(async ({ input, client }) => {
-    return client.get(`/users/${input.userId}`);
-  })
-  .catchAll(error => {
-    if (isHttpError(error)) {
-      console.log(`HTTP ${error.response.status}: ${error.message}`);
-
-      // Check error categories
-      if (error.isClientError) {
-        console.log('Client error (4xx)');
-      }
-      if (error.isServerError) {
-        console.log('Server error (5xx)');
-      }
-
-      // Check specific status codes
-      if (error.hasStatus(404)) {
-        return { type: 'NOT_FOUND', message: 'User not found' };
-      }
-      if (error.hasStatus(401)) {
-        return { type: 'UNAUTHORIZED', message: 'Authentication required' };
-      }
-
-      // Access response data
-      console.log('Response data:', error.response.data);
-      console.log('Response headers:', error.response.headers);
-    }
-
-    return { error: error.message };
-  });
-```
-
-#### **TimeoutError**
-
-Thrown when requests exceed the configured timeout.
-
-```typescript
-.catchAll((error) => {
-  if (isTimeoutError(error)) {
-    console.log(`Request timed out after ${error.timeout}ms`);
-    return { type: 'TIMEOUT', message: 'Request took too long' };
-  }
-
-  return { error: error.message };
-});
-```
-
-#### **ValidationError**
-
-Thrown when input or output schema validation fails.
-
-```typescript
-.catchAll((error) => {
-  if (isValidationError(error)) {
-    console.log(`${error.validationType} validation failed:`, error.zodError);
-    return {
-      type: 'VALIDATION_ERROR',
-      message: `Invalid ${error.validationType}`,
-      details: error.zodError
-    };
-  }
-
-  return { error: error.message };
-});
-```
-
-#### **RetryError**
-
-Thrown when all retry attempts are exhausted.
-
-```typescript
-.catchAll((error) => {
-  if (isRetryError(error)) {
-    console.log(`All ${error.attempts} retry attempts failed`);
-    console.log('Last error:', error.lastError.message);
-    return { type: 'RETRY_EXHAUSTED', message: 'Service temporarily unavailable' };
-  }
-
-  return { error: error.message };
-});
-```
-
-#### **TokenRefreshError**
-
-Thrown when automatic token refresh fails.
-
-```typescript
-.catchAll((error) => {
-  if (isTokenRefreshError(error)) {
-    console.log('Token refresh failed:', error.originalError?.message);
-    return { type: 'AUTH_ERROR', message: 'Please log in again' };
-  }
-
-  return { error: error.message };
-});
-```
-
-#### **NetworkError**
-
-Thrown for network-related failures (connection refused, DNS issues, etc.).
-
-```typescript
-.catchAll((error) => {
-  if (isNetworkError(error)) {
-    console.log('Network error:', error.originalError?.message);
-    return { type: 'NETWORK_ERROR', message: 'Check your internet connection' };
-  }
-
-  return { error: error.message };
-});
-```
-
-#### **ConfigurationError**
-
-Thrown for configuration or setup issues.
-
-```typescript
-.catchAll((error) => {
-  if (isConfigurationError(error)) {
-    console.log(`Configuration error in field: ${error.field}`);
-    return { type: 'CONFIG_ERROR', message: 'Invalid configuration' };
-  }
-
-  return { error: error.message };
-});
-```
-
-### Comprehensive Error Handling
-
-Use type guards to handle different error types in a single `.catchAll()`:
-
-```typescript
-const robustProcedure = procedure()
-  .input(userInputSchema)
-  .retry({ retries: 3, delay: 1000 })
-  .handler(async ({ input, client }) => {
-    return client.get(`/users/${input.userId}`);
-  })
-  .catchAll((error: Error) => {
-    // HTTP errors
-    if (isHttpError(error)) {
-      if (error.hasStatus(404)) {
-        return { type: 'user_not_found', message: 'User not found' };
-      }
-      if (error.hasStatus(401)) {
-        return { type: 'unauthorized', message: 'Authentication required' };
-      }
-      if (error.isServerError) {
-        return { type: 'server_error', message: 'Server is unavailable' };
-      }
-    }
-
-    // Timeout errors
-    if (isTimeoutError(error)) {
-      return { type: 'timeout', message: 'Request took too long' };
-    }
-
-    // Validation errors
-    if (isValidationError(error)) {
-      return {
-        type: 'validation_error',
-        message: 'Invalid data',
-        validationType: error.validationType,
-      };
-    }
-
-    // Retry errors
-    if (isRetryError(error)) {
-      return { type: 'retry_exhausted', message: 'Service temporarily unavailable' };
-    }
-
-    // Token refresh errors
-    if (isTokenRefreshError(error)) {
-      return { type: 'auth_error', message: 'Please log in again' };
-    }
-
-    // Network errors
-    if (isNetworkError(error)) {
-      return { type: 'network_error', message: 'Check your internet connection' };
-    }
-
-    // Configuration errors
-    if (isConfigurationError(error)) {
-      return { type: 'config_error', message: 'Invalid configuration' };
-    }
-
-    // Generic error fallback
-    return { type: 'unknown_error', message: 'Something went wrong' };
-  });
-```
-
-### Creating Custom Error Handlers
-
-Create reusable error handlers for consistent error management:
-
-```typescript
-// Reusable error handler
-function createErrorHandler<T>(defaultResponse: T) {
-  return (error: Error): T => {
-    if (isHttpError(error)) {
-      // Log HTTP errors for monitoring
-      console.error('HTTP Error:', {
-        status: error.response.status,
-        url: error.response.url,
-        data: error.response.data,
-      });
-
-      return defaultResponse;
-    }
-
-    if (isTimeoutError(error)) {
-      // Log timeout errors
-      console.warn(`Request timeout: ${error.timeout}ms`);
-      return defaultResponse;
-    }
-
-    // Log unexpected errors
-    console.error('Unexpected error:', error.message);
-    return defaultResponse;
-  };
-}
-
-// Use the reusable handler
-const getUser = procedure()
-  .input(z.object({ userId: z.number() }))
-  .handler(async ({ input, client }) => {
-    return client.get(`/users/${input.userId}`);
-  })
-  .catchAll(createErrorHandler({ error: 'Failed to fetch user' }));
 ```
 
 ## Testing Your Procedures
@@ -1843,11 +1558,10 @@ const cache = new Map();
 
 A:
 
-- Core library: ~3.2KB gzipped
-- With Zod: ~12.4KB gzipped total (Zod adds ~9KB)
-- Axios adapter: +0.4KB gzipped
-- Fetch adapter: +0.6KB gzipped
-- Error classes: +0.8KB gzipped (optional import)
+- Core library: ~2.8KB gzipped
+- With Zod: ~12KB gzipped total (Zod adds ~9KB)
+- Axios adapter: +0.6KB gzipped
+- Fetch adapter: +0.8KB gzipped
 
 ### Testing
 

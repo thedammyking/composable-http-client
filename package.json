@@ -21,11 +21,6 @@
       "types": "./dist/fetch.d.ts",
       "import": "./dist/fetch.js",
       "require": "./dist/fetch.cjs"
-    },
-    "./errors": {
-      "types": "./dist/errors.d.ts",
-      "import": "./dist/errors.js",
-      "require": "./dist/errors.cjs"
     }
   },
   "files": [

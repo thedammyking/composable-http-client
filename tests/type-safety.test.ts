@@ -144,8 +144,8 @@ describe('Type Safety Improvements', () => {
             processed: true,
           };
         })
-        .transform<{ userId: number; userName: string; processed: boolean }>(response => ({
-          ...response,
+        .transform(output => ({
+          ...output,
           transformedAt: new Date().toISOString(),
           version: '1.0',
         }))
@@ -170,8 +170,8 @@ describe('Type Safety Improvements', () => {
 
       // Type checks should work
       if (result.error === null) {
-        expect((result.data as any)?.version).toBe('1.0');
-        expect(typeof (result.data as any)?.transformedAt).toBe('string');
+        expect(result.data?.version).toBe('1.0');
+        expect(typeof result.data?.transformedAt).toBe('string');
       }
     });
   });
