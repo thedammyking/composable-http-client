@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.1.0...composable-http-client-v1.1.1) (2025-06-06)
+
+
+### Bug Fixes
+
+* consolidate error handling by removing index.ts and updating entry point in vite.config.ts ([305a823](https://github.com/thedammyking/composable-http-client/commit/305a82300b03cbb726beaee3f4a091f90c4b3c30))
+
 ## [1.1.0](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.0.4...composable-http-client-v1.1.0) (2025-06-06)
 
 
