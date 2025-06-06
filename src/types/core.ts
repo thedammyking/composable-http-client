@@ -46,9 +46,9 @@ export interface ProcedureBuilder<
         : TOutput
   >;
 
-  transform<TTransformOutput>(
-    fn: (output: TOutput) => TTransformOutput | Promise<TTransformOutput>
-  ): ProcedureBuilder<TCtx, TClient, TInput, TTransformOutput>;
+  transform<TResponse = unknown>(
+    fn: (response: TResponse) => TOutput | Promise<TOutput>
+  ): ProcedureBuilder<TCtx, TClient, TInput, TOutput>;
 
   onComplete<TResult>(
     fn: (info: {
