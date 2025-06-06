@@ -261,8 +261,8 @@ describe('Composable HTTP Client', () => {
         .handler(async () => {
           return { value: 10 };
         })
-        .transform(output => {
-          return { ...output, doubled: output.value * 2 };
+        .transform<{ value: number }>(response => {
+          return { ...response, doubled: response.value * 2 };
         })
         .catchAll(err => ({ error: err.message }));
 
@@ -278,7 +278,7 @@ describe('Composable HTTP Client', () => {
 
       const testProcedure = procedure()
         .handler(async () => ({ value: 10 }))
-        .transform(() => ({ notDoubled: 0 })) // Mismatched transform
+        .transform<{ value: number }>(() => ({ notDoubled: 0 }) as any) // Mismatched transform
         .output(outputSchema)
         .catchAll(err => ({ error: err.message }));
 

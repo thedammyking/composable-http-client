@@ -144,8 +144,8 @@ describe('Type Safety Improvements', () => {
             processed: true,
           };
         })
-        .transform(output => ({
-          ...output,
+        .transform<{ userId: number; userName: string; processed: boolean }>(response => ({
+          ...response,
           transformedAt: new Date().toISOString(),
           version: '1.0',
         }))

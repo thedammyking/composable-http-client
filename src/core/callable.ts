@@ -32,11 +32,12 @@ export function createCallableProcedure<TData = unknown, TError = Error>(
           }),
         config.retryOptions
       );
-      output = await processOutput(output, config.outputSchemaOrFn, config.ctx, parsedInput);
 
       if (config.transformFn !== undefined && config.transformFn !== null) {
         output = await config.transformFn(output);
       }
+
+      output = await processOutput(output, config.outputSchemaOrFn, config.ctx, parsedInput);
 
       await executeLifecycleHook(config.onSuccessFn, 'onSuccess');
 
