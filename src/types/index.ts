@@ -27,6 +27,27 @@ export type {
   HttpClientProcedureBuilderWithHandler,
 } from './http-client';
 
+// Re-exports from error classes
+export {
+  ComposableHttpError,
+  HttpError,
+  TimeoutError,
+  ValidationError,
+  RetryError,
+  TokenRefreshError,
+  NetworkError,
+  ConfigurationError,
+  isComposableHttpError,
+  isHttpError,
+  isTimeoutError,
+  isValidationError,
+  isRetryError,
+  isTokenRefreshError,
+  isNetworkError,
+  isConfigurationError,
+} from '../errors';
+export type { ComposableHttpErrorType } from './errors';
+
 // Re-exports from extend types
 export type { ExtendedProcedureBuilder, ExtendedProcedureBuilderWithHandler } from './extend';
 
