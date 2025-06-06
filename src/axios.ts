@@ -6,7 +6,7 @@ import { buildClassicHttpClient, resolveHeaders } from './utils';
 
 export function createHttpClient<
   Tokens extends Record<string, string> = Record<string, string>,
-  Response = AxiosResponse,
+  Response = unknown,
 >({
   baseURL,
   headers,
