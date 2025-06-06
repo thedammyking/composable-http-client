@@ -7,7 +7,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-      timezone: "UTC"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 10
     reviewers:
       - "@thedammyking"
@@ -52,7 +52,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "10:00"
-      timezone: "UTC"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 5
     reviewers:
       - "@thedammyking"
@@ -82,6 +82,5 @@ updates:
       artifact-actions:
         patterns:
           - "actions/upload-artifact"
-          - "actions/upload-release-asset"
           - "codecov/codecov-action"
           - "googleapis/release-please-action" 

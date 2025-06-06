@@ -81,14 +81,12 @@ jobs:
           tar -czf composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz dist/
 
       - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
+        run: |
+          gh release upload ${{ needs.release-please.outputs.tag_name }} \
+            ./composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz \
+            --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release-please.outputs.upload_url }}
-          asset_path: ./composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz
-          asset_name: composable-http-client-${{ needs.release-please.outputs.tag_name }}.tar.gz
-          asset_content_type: application/gzip
 
       - name: Announce Release
         if: success()
