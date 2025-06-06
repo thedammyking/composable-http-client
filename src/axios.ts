@@ -69,11 +69,14 @@ export function createHttpClient<
 
         // HTTP errors (with response)
         if (error.response !== undefined && error.response !== null) {
-          const { status, data, headers } = error.response;
+          const status = error.response.status;
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- axios error response data is typed as any
+          const data = error.response.data;
+          const headers = error.response.headers;
           const headersObj: Record<string, string> = {};
           if (headers !== undefined && headers !== null) {
-            Object.entries(headers).forEach(([key, value]) => {
-              headersObj[key] = String(value);
+            Object.keys(headers).forEach(key => {
+              headersObj[key] = String(headers[key]);
             });
           }
 
