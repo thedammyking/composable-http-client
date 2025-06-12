@@ -11,7 +11,7 @@ export function createCallableProcedure<TData = unknown, TError = Error>(
 ): CallableProcedure<TData, TError> {
   validateConfig(config);
 
-  const callable = async (input: unknown): Promise<Result<TData, TError>> => {
+  const callable = async (input?: unknown): Promise<Result<TData, TError>> => {
     let parsedInput: unknown = input;
     let output: unknown;
     let error: Error | null = null;

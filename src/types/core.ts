@@ -58,14 +58,14 @@ export interface ProcedureBuilder<
     }) => void | Promise<void>
   ): ProcedureBuilder<TCtx, TClient, TInput, TOutput>;
 
-  catchAll<TError>(fn: (err: Error) => TError): CallableProcedure<TOutput, TError, TInput>;
+  catchAll<TError>(fn: (err: Error) => TError): CallableProcedure<TOutput, TError>;
 
   // Make the builder callable without catchAll
-  (input: TInput): Promise<Result<TOutput, Error>>;
+  (input?: TInput): Promise<Result<TOutput, Error>>;
 }
 
-export type CallableProcedure<TData = unknown, TError = Error, TInput = unknown> = (
-  input: TInput
+export type CallableProcedure<TData = unknown, TError = Error> = (
+  input?: unknown
 ) => Promise<Result<TData, TError>>;
 
 export type BaseProcedure<TCtx = unknown, TClient = unknown> = () => ProcedureBuilder<

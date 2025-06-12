@@ -23,7 +23,7 @@ export function createProcedureBuilder<TCtx = unknown, TClient = unknown>(
   };
 
   // Create the callable function that can be used without catchAll
-  const callableWithoutCatchAll = async (input: unknown) => {
+  const callableWithoutCatchAll = async (input?: unknown) => {
     return createCallableProcedure<unknown, Error>(config as ProcedureConfig)(input);
   };
 
