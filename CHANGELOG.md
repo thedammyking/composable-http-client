@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.1.1...composable-http-client-v1.2.0) (2025-06-12)
+
+
+### Features
+
+* add optional baseURL support for fetch client ([215c75a](https://github.com/thedammyking/composable-http-client/commit/215c75a729a6fea694ac693f65c42c1083e91309))
+
+
+### Bug Fixes
+
+* allow optional input for callable procedures in builder and callable functions ([9a7add1](https://github.com/thedammyking/composable-http-client/commit/9a7add18a63982dd5abd726c0c1562bd41a9ebba))
+
 ## [1.1.1](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.1.0...composable-http-client-v1.1.1) (2025-06-06)
 
 
