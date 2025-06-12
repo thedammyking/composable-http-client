@@ -1,7 +1,10 @@
 import type { HeadersFn, RequestConfig } from '../types/base';
 import type { ClassicHttpClient } from '../types/client';
 
-export function buildUrl(baseURL: string, url: string = ''): string {
+export function buildUrl(baseURL: string | undefined, url: string = ''): string {
+  if (baseURL === undefined || baseURL === null || baseURL === '') {
+    return url;
+  }
   return [baseURL.replace(/\/$/, ''), url.replace(/^\//, '')].filter(Boolean).join('/');
 }
 
@@ -13,7 +16,7 @@ export function resolveHeaders<Tokens extends Record<string, string>>(
 }
 
 export function buildClassicHttpClient<Response = unknown>(
-  baseURL: string,
+  baseURL: string | undefined,
   coreRequest: <T = Response>(config: RequestConfig, retry?: boolean) => Promise<T>
 ): ClassicHttpClient<Response> {
   return {

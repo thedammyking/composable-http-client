@@ -146,4 +146,93 @@ describe('Fetch HTTP Client', () => {
     const uri = await client.getUri({ url: '/test/path' });
     expect(uri).toBe('https://api.example.com/test/path');
   });
+
+  it('should work without baseURL using relative paths', async () => {
+    const clientWithoutBaseURL = createHttpClient({});
+
+    // In browser/Next.js environments, relative paths work fine
+    // In Node.js test environment, we need to use absolute URLs
+    const absoluteURL = 'http://localhost:3000/users';
+
+    server.use(
+      http.get(absoluteURL, () => {
+        return HttpResponse.json({ users: [{ id: 1, name: 'John' }] });
+      })
+    );
+
+    const response = await clientWithoutBaseURL.get(absoluteURL);
+    expect(response).toEqual({ users: [{ id: 1, name: 'John' }] });
+  });
+
+  it('should work without baseURL using absolute URLs', async () => {
+    const clientWithoutBaseURL = createHttpClient({});
+    const absoluteURL = 'https://api.example.com/users';
+
+    server.use(
+      http.get(absoluteURL, () => {
+        return HttpResponse.json({ users: [{ id: 1, name: 'John' }] });
+      })
+    );
+
+    const response = await clientWithoutBaseURL.get(absoluteURL);
+    expect(response).toEqual({ users: [{ id: 1, name: 'John' }] });
+  });
+
+  it('should handle getUri without baseURL', async () => {
+    const clientWithoutBaseURL = createHttpClient({});
+
+    const uri = await clientWithoutBaseURL.getUri({ url: '/test/path' });
+    expect(uri).toBe('/test/path');
+
+    const absoluteUri = await clientWithoutBaseURL.getUri({ url: 'https://api.example.com/test' });
+    expect(absoluteUri).toBe('https://api.example.com/test');
+  });
+
+  it('should handle all HTTP methods without baseURL', async () => {
+    const clientWithoutBaseURL = createHttpClient({});
+    const testData = { name: 'Test' };
+    const baseUrl = 'http://localhost:3000';
+
+    server.use(
+      http.get(`${baseUrl}/get-test`, () => HttpResponse.json({ method: 'GET' })),
+      http.post(`${baseUrl}/post-test`, () => HttpResponse.json({ method: 'POST' })),
+      http.put(`${baseUrl}/put-test`, () => HttpResponse.json({ method: 'PUT' })),
+      http.patch(`${baseUrl}/patch-test`, () => HttpResponse.json({ method: 'PATCH' })),
+      http.delete(`${baseUrl}/delete-test`, () => HttpResponse.json({ method: 'DELETE' })),
+      http.head(`${baseUrl}/head-test`, () => new HttpResponse(null, { status: 200 })),
+      http.options(`${baseUrl}/options-test`, () => HttpResponse.json({ method: 'OPTIONS' }))
+    );
+
+    const getResponse = await clientWithoutBaseURL.get(`${baseUrl}/get-test`);
+    expect(getResponse).toEqual({ method: 'GET' });
+
+    const postResponse = await clientWithoutBaseURL.post(`${baseUrl}/post-test`, testData);
+    expect(postResponse).toEqual({ method: 'POST' });
+
+    const putResponse = await clientWithoutBaseURL.put(`${baseUrl}/put-test`, testData);
+    expect(putResponse).toEqual({ method: 'PUT' });
+
+    const patchResponse = await clientWithoutBaseURL.patch(`${baseUrl}/patch-test`, testData);
+    expect(patchResponse).toEqual({ method: 'PATCH' });
+
+    const deleteResponse = await clientWithoutBaseURL.delete(`${baseUrl}/delete-test`);
+    expect(deleteResponse).toEqual({ method: 'DELETE' });
+
+    const optionsResponse = await clientWithoutBaseURL.options(`${baseUrl}/options-test`);
+    expect(optionsResponse).toEqual({ method: 'OPTIONS' });
+  });
+
+  it('should work without any parameters at all', async () => {
+    const clientWithNoParams = createHttpClient(); // No parameters needed!
+    const absoluteURL = 'http://localhost:3000/users';
+
+    server.use(
+      http.get(absoluteURL, () => {
+        return HttpResponse.json({ users: [{ id: 1, name: 'Jane' }] });
+      })
+    );
+
+    const response = await clientWithNoParams.get(absoluteURL);
+    expect(response).toEqual({ users: [{ id: 1, name: 'Jane' }] });
+  });
 });
