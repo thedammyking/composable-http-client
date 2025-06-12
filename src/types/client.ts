@@ -34,3 +34,14 @@ export interface CoreClientParams<Tokens extends Record<string, string> = Record
   addTracing?: AddTracingFn;
   timeout?: number;
 }
+
+// New interface for fetch client with optional baseURL
+export interface FetchClientParams<Tokens extends Record<string, string> = Record<string, string>> {
+  baseURL?: string;
+  headers?: Record<string, string> | HeadersFn<Tokens>;
+  getTokens?: GetTokensFn<Tokens>;
+  refreshToken?: RefreshTokenFn;
+  logError?: LogErrorFn;
+  addTracing?: AddTracingFn;
+  timeout?: number;
+}

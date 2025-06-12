@@ -13,7 +13,12 @@ export type {
 } from './base';
 
 // Re-exports from client types
-export type { ClassicHttpClient, Interceptors, CoreClientParams } from './client';
+export type {
+  ClassicHttpClient,
+  Interceptors,
+  CoreClientParams,
+  FetchClientParams,
+} from './client';
 
 // Re-exports from config types
 export type { ProcedureConfig } from './config';

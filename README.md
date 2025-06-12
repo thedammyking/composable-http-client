@@ -129,6 +129,47 @@ const procedure = createHttpClientProcedure(client);
 // ... rest is the same
 ```
 
+#### Optional baseURL for Fetch Client
+
+The fetch client supports optional `baseURL` parameter, which is particularly useful in Next.js and browser environments:
+
+```typescript
+import { createHttpClient } from 'composable-http-client/fetch';
+
+// With baseURL (traditional approach)
+const clientWithBase = createHttpClient({
+  baseURL: 'https://api.example.com',
+  headers: { Authorization: 'Bearer your-token' },
+});
+
+// Without baseURL (new feature)
+const clientWithoutBase = createHttpClient({
+  headers: { Authorization: 'Bearer your-token' },
+});
+
+// No parameters at all (most minimal)
+const minimalClient = createHttpClient();
+
+// Usage examples:
+// With baseURL: relative paths are resolved against baseURL
+await clientWithBase.get('/users'); // -> https://api.example.com/users
+
+// Without baseURL: URLs are passed directly to fetch()
+await clientWithoutBase.get('/api/users'); // -> /api/users (relative to current page in browser/Next.js)
+await clientWithoutBase.get('https://api.example.com/users'); // -> absolute URL works too
+
+// Minimal client: same behavior as without baseURL
+await minimalClient.get('/api/users'); // -> /api/users (relative to current page)
+await minimalClient.get('https://api.example.com/users'); // -> absolute URL works too
+```
+
+**Environment Behavior:**
+
+- **Browser/Next.js**: Relative URLs like `/api/users` resolve against the current page URL
+- **Node.js**: Relative URLs require a base context, so use absolute URLs or provide a `baseURL`
+
+**Note**: Axios client requires `baseURL` to maintain consistency with axios behavior.
+
 ## Environment Compatibility
 
 This library is **framework agnostic** and works seamlessly across different JavaScript environments:

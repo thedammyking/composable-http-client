@@ -1,4 +1,4 @@
-import type { ClassicHttpClient, CoreClientParams, FetchLike, RequestConfig } from './types';
+import type { ClassicHttpClient, FetchClientParams, FetchLike, RequestConfig } from './types';
 import { HttpError, TimeoutError, NetworkError, TokenRefreshError } from './errors';
 import { buildClassicHttpClient, buildUrl, resolveHeaders } from './utils';
 
@@ -44,7 +44,7 @@ function createFetchCoreRequest<
     logError,
     addTracing,
     timeout = 0,
-  }: CoreClientParams<Tokens>
+  }: FetchClientParams<Tokens>
 ) {
   return async function coreRequest<T = Response>(
     config: RequestConfig = {},
@@ -117,7 +117,12 @@ function createFetchCoreRequest<
 export function createHttpClient<
   Tokens extends Record<string, string> = Record<string, string>,
   Response = unknown,
->(params: CoreClientParams<Tokens>): ClassicHttpClient<Response> {
-  const coreRequest = createFetchCoreRequest<Tokens, Response>(fetch, params);
-  return buildClassicHttpClient<Response>(params.baseURL, coreRequest);
+>(params?: FetchClientParams<Tokens>): ClassicHttpClient<Response> {
+  // Note: When baseURL is not provided, URLs are passed directly to fetch().
+  // In browser/Next.js environments, relative URLs like '/api/users' work fine
+  // as they resolve against the current page URL.
+  // In Node.js environments, you'll need to provide absolute URLs.
+  const safeParams = params ?? {};
+  const coreRequest = createFetchCoreRequest<Tokens, Response>(fetch, safeParams);
+  return buildClassicHttpClient<Response>(safeParams.baseURL, coreRequest);
 }
