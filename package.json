@@ -1,7 +1,7 @@
 {
   "name": "composable-http-client",
   "description": "A TypeScript-first composable HTTP client library that revolutionizes API interactions through procedure builders, schema validation, and intelligent retry logic.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "publisher": "thedammyking",
   "repository": {
     "type": "git",
