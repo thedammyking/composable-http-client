@@ -89,7 +89,7 @@ jobs:
 
   osv-scanner:
     name: OSV-Scanner
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.0.2
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.0.3
     if: github.event_name != 'release' && (github.event.pull_request.draft == false || github.event_name == 'push' || github.event_name == 'schedule')
     with:
       scan-args: |-
