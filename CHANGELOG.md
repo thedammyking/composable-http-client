@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.2.0...composable-http-client-v1.2.1) (2025-07-19)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies and package manager version ([38b454d](https://github.com/thedammyking/composable-http-client/commit/38b454d9588e8affe1fb739330e715eef54d7f2a))
+
 ## [1.2.0](https://github.com/thedammyking/composable-http-client/compare/composable-http-client-v1.1.1...composable-http-client-v1.2.0) (2025-06-12)
 
 
