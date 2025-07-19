@@ -12,7 +12,7 @@ importers:
   .:
     dependencies:
       axios:
-        specifier: ^1.9.0
+        specifier: ^1.10.0
         version: 1.10.0
       zod:
         specifier: ^4.0.5
@@ -28,37 +28,37 @@ importers:
         specifier: ^19.8.1
         version: 19.8.1
       '@eslint/js':
-        specifier: ^9.28.0
+        specifier: ^9.31.0
         version: 9.31.0
       '@types/node':
-        specifier: ^24.0.1
+        specifier: ^24.0.15
         version: 24.0.15
       '@typescript-eslint/eslint-plugin':
-        specifier: ^8.34.0
+        specifier: ^8.37.0
         version: 8.37.0(@typescript-eslint/parser@8.37.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
       '@typescript-eslint/parser':
-        specifier: ^8.34.0
+        specifier: ^8.37.0
         version: 8.37.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
       '@vitest/coverage-v8':
-        specifier: ^3.2.3
+        specifier: ^3.2.4
         version: 3.2.4(vitest@3.2.4(@types/node@24.0.15)(jiti@2.4.2)(msw@2.10.4(@types/node@24.0.15)(typescript@5.8.3))(yaml@2.8.0))
       all-contributors-cli:
         specifier: ^6.26.1
         version: 6.26.1
       eslint:
-        specifier: ^9.28.0
+        specifier: ^9.31.0
         version: 9.31.0(jiti@2.4.2)
       husky:
         specifier: ^9.1.7
         version: 9.1.7
       lint-staged:
-        specifier: ^16.1.0
+        specifier: ^16.1.2
         version: 16.1.2
       msw:
-        specifier: ^2.10.2
+        specifier: ^2.10.4
         version: 2.10.4(@types/node@24.0.15)(typescript@5.8.3)
       prettier:
-        specifier: ^3.5.3
+        specifier: ^3.6.2
         version: 3.6.2
       typescript:
         specifier: ^5.8.3
@@ -70,7 +70,7 @@ importers:
         specifier: ^4.5.4
         version: 4.5.4(@types/node@24.0.15)(rollup@4.45.1)(typescript@5.8.3)(vite@7.0.5(@types/node@24.0.15)(jiti@2.4.2)(yaml@2.8.0))
       vitest:
-        specifier: ^3.2.3
+        specifier: ^3.2.4
         version: 3.2.4(@types/node@24.0.15)(jiti@2.4.2)(msw@2.10.4(@types/node@24.0.15)(typescript@5.8.3))(yaml@2.8.0)
 
 packages:
